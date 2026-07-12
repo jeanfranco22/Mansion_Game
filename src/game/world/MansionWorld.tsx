@@ -1,0 +1,229 @@
+import { Bookshelf } from "../objects/Bookshelf";
+import { Cabinet } from "../objects/Cabinet";
+import { CollectibleItem } from "../objects/CollectibleItem";
+import { CorridorDoor } from "../objects/CorridorDoor";
+import {
+  BrokenFurniture,
+  CableTrail,
+  CrateStack,
+  DeskLamp,
+  PaperScatter,
+  PipeRun,
+  Rug,
+  WallDamage,
+} from "../objects/EnvironmentProps";
+import { FinalExitDoor } from "../objects/FinalExitDoor";
+import { MainKey } from "../objects/MainKey";
+import { PictureFrame } from "../objects/PictureFrame";
+import {
+  BasementAccessDoor,
+  BookOrderPuzzle,
+  EscapeLever,
+  FuseBox,
+  HiddenWallSwitch,
+  OfficeSafe,
+  PressurePlate,
+  StorageDoor,
+  ValveWheel,
+} from "../objects/PuzzleObjects";
+import { ReadableNote } from "../objects/ReadableNote";
+import { SimpleChair } from "../objects/SimpleChair";
+import { SimpleTable } from "../objects/SimpleTable";
+import { StudyDoor } from "../objects/StudyDoor";
+import { FinalRoomTrigger } from "../triggers/FinalRoomTrigger";
+import { LightFlickerTrigger } from "../triggers/LightFlickerTrigger";
+import { DoorCloseTrigger } from "../triggers/DoorCloseTrigger";
+import { StudyRoomEventController } from "../scripted-events/StudyRoomEventController";
+import { useGameStore } from "../store/useGameStore";
+import { Corridor } from "./Corridor";
+import { DoorFrame } from "./DoorFrame";
+import { Room } from "./Room";
+import { StaticBox } from "./StaticBox";
+import { Wall } from "./Wall";
+import { WindowPanel } from "./WindowPanel";
+
+const wallHeight = 2.8;
+const wallThickness = 0.28;
+
+function WallColumn({ position }: { position: [number, number, number] }) {
+  return <StaticBox color="#4a433d" position={position} scale={[0.22, 2.6, 0.22]} />;
+}
+
+export function MansionWorld() {
+  const studyLightIntensity = useGameStore(
+    (state) => state.studyRoom.studyLightIntensity,
+  );
+  const electricityRestored = useGameStore(
+    (state) => state.progression.electricityRestored,
+  );
+
+  return (
+    <>
+      <ambientLight intensity={electricityRestored ? 0.12 : 0.055} />
+      <pointLight color="#d9a85f" intensity={electricityRestored ? 55 : 36} position={[0, 2.6, 2]} />
+      <pointLight color="#6f8fb8" intensity={electricityRestored ? 30 : 12} position={[0, 2.25, -6.5]} />
+      <pointLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 88 : 48)} position={[4.2, 2.5, -8.2]} />
+      <pointLight color="#8fd0ff" intensity={electricityRestored ? 34 : 0} position={[-5.8, 2.25, -5.8]} />
+      <pointLight color="#97a7c9" intensity={electricityRestored ? 28 : 12} position={[0, 2.3, -17]} />
+
+      <Room center={[0, 2]} floorColor="#4d4944" size={[8, 8]} walls={false} />
+      <Room center={[-4.15, -6]} floorColor="#463f38" size={[6, 5]} walls={false} />
+      <Room center={[4.15, -8]} floorColor="#3f3832" size={[6, 5]} walls={false} />
+      <Room center={[0, -17]} floorColor="#383739" size={[6, 5]} walls={false} />
+      <Corridor center={[0, -8]} length={12} walls={false} width={2.3} />
+
+      <Wall position={[-4, wallHeight / 2, 2]} scale={[wallThickness, wallHeight, 8]} />
+      <Wall position={[4, wallHeight / 2, 2]} scale={[wallThickness, wallHeight, 8]} />
+      <Wall position={[0, wallHeight / 2, 6]} scale={[8, wallHeight, wallThickness]} />
+      <Wall position={[-2.58, wallHeight / 2, -2]} scale={[2.85, wallHeight, wallThickness]} />
+      <Wall position={[2.58, wallHeight / 2, -2]} scale={[2.85, wallHeight, wallThickness]} />
+
+      <Wall color="#5d5a56" position={[-1.15, wallHeight / 2, -3.2]} scale={[wallThickness, wallHeight, 2.4]} />
+      <Wall color="#5d5a56" position={[-1.15, wallHeight / 2, -10.8]} scale={[wallThickness, wallHeight, 6.4]} />
+      <Wall color="#5d5a56" position={[1.15, wallHeight / 2, -4.3]} scale={[wallThickness, wallHeight, 4.6]} />
+      <Wall color="#5d5a56" position={[1.15, wallHeight / 2, -12.05]} scale={[wallThickness, wallHeight, 3.9]} />
+
+      <Wall color="#6f665e" position={[-7.15, wallHeight / 2, -6]} scale={[wallThickness, wallHeight, 5]} />
+      <Wall color="#6f665e" position={[-4.15, wallHeight / 2, -3.5]} scale={[6, wallHeight, wallThickness]} />
+      <Wall color="#6f665e" position={[-4.15, wallHeight / 2, -8.5]} scale={[6, wallHeight, wallThickness]} />
+      <Wall color="#6f665e" position={[-1.15, wallHeight / 2, -4.45]} scale={[wallThickness, wallHeight, 1.9]} />
+      <Wall color="#6f665e" position={[-1.15, wallHeight / 2, -7.55]} scale={[wallThickness, wallHeight, 1.9]} />
+
+      <Wall color="#695f58" position={[7.15, wallHeight / 2, -8]} scale={[wallThickness, wallHeight, 5]} />
+      <Wall color="#695f58" position={[4.15, wallHeight / 2, -5.5]} scale={[6, wallHeight, wallThickness]} />
+      <Wall color="#695f58" position={[4.15, wallHeight / 2, -10.5]} scale={[6, wallHeight, wallThickness]} />
+      <Wall color="#695f58" position={[1.15, wallHeight / 2, -6.65]} scale={[wallThickness, wallHeight, 2.3]} />
+      <Wall color="#695f58" position={[1.15, wallHeight / 2, -9.35]} scale={[wallThickness, wallHeight, 2.3]} />
+
+      <Wall color="#545359" position={[-3, wallHeight / 2, -17]} scale={[wallThickness, wallHeight, 5]} />
+      <Wall color="#545359" position={[3, wallHeight / 2, -17]} scale={[wallThickness, wallHeight, 5]} />
+      <Wall color="#545359" position={[-2.05, wallHeight / 2, -14.5]} scale={[1.9, wallHeight, wallThickness]} />
+      <Wall color="#545359" position={[2.05, wallHeight / 2, -14.5]} scale={[1.9, wallHeight, wallThickness]} />
+      <Wall color="#545359" position={[-2.1, wallHeight / 2, -19.5]} scale={[1.8, wallHeight, wallThickness]} />
+      <Wall color="#545359" position={[2.1, wallHeight / 2, -19.5]} scale={[1.8, wallHeight, wallThickness]} />
+
+      <DoorFrame position={[0, 0, -2]} />
+      <DoorFrame position={[-1.15, 0, -6]} rotationY={Math.PI / 2} />
+      <DoorFrame position={[1.15, 0, -8]} rotationY={Math.PI / 2} />
+      <DoorFrame position={[0, 0, -11.45]} />
+      <DoorFrame position={[0, 0, -14.5]} />
+      <DoorFrame position={[0, 0, -19.5]} />
+
+      <WallColumn position={[-3.85, 1.3, -1.6]} />
+      <WallColumn position={[3.85, 1.3, -1.6]} />
+      <WallColumn position={[-1.05, 1.3, -11.45]} />
+      <WallColumn position={[1.05, 1.3, -11.45]} />
+      <WallColumn position={[6.95, 1.3, -5.8]} />
+      <WallColumn position={[6.95, 1.3, -10.2]} />
+
+      <WindowPanel position={[-4.02, 1.55, 3.6]} rotation={[0, Math.PI / 2, 0]} scale={[1.2, 0.85, 0.04]} />
+      <WindowPanel position={[-7.17, 1.55, -6]} rotation={[0, Math.PI / 2, 0]} scale={[1.2, 0.85, 0.04]} />
+      <WindowPanel position={[7.17, 1.55, -8]} rotation={[0, Math.PI / 2, 0]} scale={[1.2, 0.85, 0.04]} />
+
+      <Rug color="#493634" position={[0, 0.012, 2.1]} scale={[2.8, 0.02, 4.4]} />
+      <Rug color="#2f3236" position={[0, 0.014, -8.1]} scale={[1.35, 0.02, 7.2]} />
+      <Rug color="#3b3b44" position={[0, 0.014, -17]} scale={[2.7, 0.02, 3.5]} />
+      <WallDamage position={[1.25, 1.85, 5.84]} />
+      <WallDamage position={[-4.02, 1.15, 0.2]} rotationY={Math.PI / 2} />
+      <WallDamage position={[7.0, 1.2, -7.35]} rotationY={Math.PI / 2} />
+      <WallDamage position={[-2.3, 1.6, -19.34]} />
+      <PaperScatter position={[-0.9, 0.035, 3.4]} />
+      <PaperScatter position={[4.9, 0.035, -6.5]} />
+      <PaperScatter position={[-5.55, 0.035, -4.7]} />
+      <CableTrail position={[-5.9, 0.05, -6.8]} />
+      <PipeRun position={[-7.02, 2.1, -6.2]} />
+      <BrokenFurniture position={[-2.6, 0, 4.9]} />
+      <CrateStack position={[-5.55, 0, -6.5]} />
+      <CrateStack position={[-4.2, 0, -4.6]} />
+
+      <SimpleTable position={[4.15, 0, -8.2]} />
+      <SimpleChair position={[3.2, 0, -7.45]} rotationY={0.35} />
+      <SimpleChair position={[5.15, 0, -8.95]} rotationY={-2.6} />
+      <SimpleTable position={[-0.8, 0, 4.35]} />
+      <SimpleChair position={[-1.7, 0, 4.35]} rotationY={1.25} />
+      <Bookshelf position={[5.85, 0, -10.08]} />
+      <Bookshelf position={[4.95, 0, -10.08]} />
+      <Cabinet position={[-5.75, 0, -7.85]} />
+      <Cabinet position={[3.0, 0, -9.88]} />
+      <DeskLamp active={electricityRestored} position={[4.18, 0.83, -8.18]} />
+      <PictureFrame position={[0, 1.55, 5.84]} />
+      <PictureFrame color="#574037" position={[-3.9, 1.55, 0.8]} rotation={[0, Math.PI / 2, 0]} />
+      <PictureFrame color="#263b35" position={[6.98, 1.55, -8.85]} rotation={[0, Math.PI / 2, 0]} />
+      <PictureFrame color="#303650" position={[0.9, 1.55, -19.34]} />
+
+      <HiddenWallSwitch id="storage-latch-switch" mode="storage" position={[-3.88, 1.08, 0.2]} rotationY={Math.PI / 2} />
+      <HiddenWallSwitch id="study-unlock-switch" mode="study" position={[1.05, 1.1, -4.25]} rotationY={-Math.PI / 2} />
+      <StorageDoor />
+      <MainKey position={[-5.75, 1.26, -7.85]} />
+      <CollectibleItem
+        color="#8f9b9f"
+        id="screwdriver"
+        item={{ id: "screwdriver", label: "Screwdriver" }}
+        position={[-4.7, 0.74, -5.1]}
+        rotationY={0.6}
+        shape="cylinder"
+      />
+      <CollectibleItem
+        color="#7b8795"
+        id="replacement-fuse"
+        item={{ id: "fuse", label: "Replacement Fuse" }}
+        position={[-5.95, 1.2, -6.45]}
+        shape="cylinder"
+      />
+      <CollectibleItem
+        color="#2f343b"
+        id="flashlight-batteries"
+        item={{ id: "batteries", label: "Batteries" }}
+        position={[-5.2, 0.72, -7.35]}
+        shape="box"
+      />
+      <CollectibleItem
+        color="#4d5156"
+        id="crowbar"
+        item={{ id: "crowbar", label: "Crowbar" }}
+        position={[-4.25, 0.3, -7.65]}
+        rotationY={0.4}
+        shape="cylinder"
+      />
+      <ReadableNote
+        content={"Letter from E. Vale\n\nIf the house goes dark again, the spare fuse is in storage. The electrical panel is mounted near the west pipes. Do not touch it without the small screwdriver."}
+        id="entrance-letter"
+        position={[-0.8, 0.86, 4.35]}
+        rotationY={-0.1}
+      />
+      <ReadableNote
+        content={"Maintenance Memo\n\nThe master study switch is hidden in the corridor trim. Lord Vale insisted the servants should never enter without permission."}
+        id="maintenance-memo"
+        position={[-5.2, 0.72, -4.55]}
+        rotationY={0.2}
+      />
+      <ReadableNote
+        content={"Archivist's Reminder\n\nThe safe code is filed under the family motto: Raven before Sun, Sun before Crown. Ignore the ash-bound volume."}
+        id="book-clue-note"
+        position={[4.1, 0.86, -8.2]}
+        rotationY={0.1}
+      />
+      <ReadableNote
+        content={"Architect Report 1847\n\nThe lower escape lock is mechanical, not ceremonial. Steam pressure, a loaded floor plate, then the release lever. The final door only opens when all three agree."}
+        id="architect-report-note"
+        position={[2.62, 0.78, -9.74]}
+        rotationY={-0.05}
+      />
+      <FuseBox />
+      <BookOrderPuzzle />
+      <OfficeSafe />
+      <CorridorDoor />
+      <StudyDoor />
+      <BasementAccessDoor />
+      <PressurePlate />
+      <ValveWheel />
+      <EscapeLever />
+      <FinalExitDoor />
+
+      <LightFlickerTrigger />
+      <DoorCloseTrigger />
+      <FinalRoomTrigger />
+      <StudyRoomEventController />
+    </>
+  );
+}
