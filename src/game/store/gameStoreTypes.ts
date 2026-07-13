@@ -25,6 +25,27 @@ export type InventoryItem = {
   label: string;
 };
 
+export type GameStatus = "menu" | "playing" | "paused" | "settings" | "victory";
+
+export type GraphicsQuality = "low" | "medium" | "high";
+
+export type SettingsState = {
+  mouseSensitivity: number;
+  masterVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  graphicsQuality: GraphicsQuality;
+  fullscreen: boolean;
+};
+
+export type MobileInputState = {
+  moveX: number;
+  moveY: number;
+  lookX: number;
+  lookY: number;
+  sprint: boolean;
+};
+
 export type ProgressionState = {
   hasMainKey: boolean;
   corridorDoorOpened: boolean;

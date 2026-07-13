@@ -1,25 +1,41 @@
 import { create } from "zustand";
 import {
+  initialMobileInput,
   initialObjective,
   initialProgression,
+  initialSettings,
   initialStudyRoom,
 } from "./gameDefaults";
 import type {
+  GraphicsQuality,
+  GameStatus,
   InteractionState,
   InventoryItem,
   InventoryItemId,
+  MobileInputState,
   Objective,
   PlayerRuntimeState,
   ProgressionState,
+  SettingsState,
   StudyRoomState,
 } from "./gameStoreTypes";
 
 type GameActions = {
+  startGame: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
+  openSettings: () => void;
+  closeSettings: () => void;
   setPointerLocked: (pointerLocked: boolean) => void;
   setControlsSuspended: (controlsSuspended: boolean) => void;
   setPlayerMovement: (isMoving: boolean, isSprinting: boolean) => void;
   setStamina: (stamina: number) => void;
   setActiveInteraction: (id: string | null, prompt: string | null) => void;
+  setMobileMove: (moveX: number, moveY: number) => void;
+  setMobileLook: (lookX: number, lookY: number) => void;
+  setMobileSprint: (sprint: boolean) => void;
+  resetMobileInput: () => void;
+  updateSettings: (settings: Partial<SettingsState>) => void;
   addInventoryItem: (item: InventoryItem) => void;
   hasInventoryItem: (id: InventoryItemId) => boolean;
   collectMainKey: () => void;
@@ -53,12 +69,16 @@ type GameActions = {
 };
 
 type GameStore = {
+  gameStatus: GameStatus;
+  lastGameStatus: GameStatus;
   pointerLocked: boolean;
   flashlightEnabled: boolean;
   flashlightHintVisible: boolean;
   objective: Objective;
   documentContent: string | null;
   inventory: InventoryItem[];
+  settings: SettingsState;
+  mobileInput: MobileInputState;
   progression: ProgressionState;
   player: PlayerRuntimeState;
   interaction: InteractionState;
@@ -66,6 +86,77 @@ type GameStore = {
 } & GameActions;
 
 const clampStamina = (stamina: number) => Math.min(100, Math.max(0, stamina));
+const SETTINGS_STORAGE_KEY = "vale-house-settings-v1";
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const clampSensitivity = (value: number) => Math.min(1.8, Math.max(0.45, value));
+const graphicsQualities = new Set<GraphicsQuality>(["low", "medium", "high"]);
+
+function normalizeSettings(settings: Partial<SettingsState>) {
+  const normalized: Partial<SettingsState> = {};
+
+  if (typeof settings.fullscreen === "boolean") {
+    normalized.fullscreen = settings.fullscreen;
+  }
+
+  if (
+    typeof settings.graphicsQuality === "string" &&
+    graphicsQualities.has(settings.graphicsQuality as GraphicsQuality)
+  ) {
+    normalized.graphicsQuality = settings.graphicsQuality as GraphicsQuality;
+  }
+
+  if (typeof settings.mouseSensitivity === "number") {
+    normalized.mouseSensitivity = clampSensitivity(settings.mouseSensitivity);
+  }
+
+  if (typeof settings.masterVolume === "number") {
+    normalized.masterVolume = clamp01(settings.masterVolume);
+  }
+
+  if (typeof settings.musicVolume === "number") {
+    normalized.musicVolume = clamp01(settings.musicVolume);
+  }
+
+  if (typeof settings.sfxVolume === "number") {
+    normalized.sfxVolume = clamp01(settings.sfxVolume);
+  }
+
+  return normalized;
+}
+
+function loadPersistedSettings(): SettingsState {
+  if (typeof window === "undefined") {
+    return initialSettings;
+  }
+
+  try {
+    const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
+    if (!storedSettings) {
+      return initialSettings;
+    }
+
+    return {
+      ...initialSettings,
+      ...normalizeSettings(JSON.parse(storedSettings) as Partial<SettingsState>),
+    };
+  } catch {
+    return initialSettings;
+  }
+}
+
+function persistSettings(settings: SettingsState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // Settings still apply in memory if storage is unavailable.
+  }
+}
 
 function addUniqueInventoryItem(
   inventory: InventoryItem[],
@@ -79,15 +170,19 @@ function addUniqueInventoryItem(
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
+  gameStatus: "menu",
+  lastGameStatus: "menu",
   pointerLocked: false,
   flashlightEnabled: false,
   flashlightHintVisible: true,
   objective: initialObjective,
   documentContent: null,
   inventory: [],
+  settings: loadPersistedSettings(),
+  mobileInput: initialMobileInput,
   progression: initialProgression,
   player: {
-    controlsSuspended: false,
+    controlsSuspended: true,
     isMoving: false,
     isSprinting: false,
     stamina: 100,
@@ -99,6 +194,65 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   studyRoom: initialStudyRoom,
 
+  startGame: () =>
+    set((state) => ({
+      gameStatus: "playing",
+      lastGameStatus: "playing",
+      player: { ...state.player, controlsSuspended: false },
+    })),
+  pauseGame: () =>
+    set((state) =>
+      state.gameStatus !== "playing"
+        ? state
+        : {
+            gameStatus: "paused",
+            lastGameStatus: "playing",
+            pointerLocked: false,
+            mobileInput: initialMobileInput,
+            player: {
+              ...state.player,
+              controlsSuspended: true,
+              isMoving: false,
+              isSprinting: false,
+            },
+          },
+    ),
+  resumeGame: () =>
+    set((state) => ({
+      gameStatus: "playing",
+      lastGameStatus: "playing",
+      player: { ...state.player, controlsSuspended: false },
+    })),
+  openSettings: () =>
+    set((state) => ({
+      gameStatus: "settings",
+      lastGameStatus: state.gameStatus === "settings" ? state.lastGameStatus : state.gameStatus,
+      pointerLocked: false,
+      mobileInput: initialMobileInput,
+      player: {
+        ...state.player,
+        controlsSuspended: true,
+        isMoving: false,
+        isSprinting: false,
+      },
+    })),
+  closeSettings: () =>
+    set((state) => {
+      const nextStatus =
+        state.lastGameStatus === "playing" ||
+        state.lastGameStatus === "paused" ||
+        state.lastGameStatus === "victory"
+          ? state.lastGameStatus
+          : "menu";
+
+      return {
+        gameStatus: nextStatus,
+        player: {
+          ...state.player,
+          controlsSuspended: nextStatus !== "playing",
+        },
+      };
+    }),
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
   setControlsSuspended: (controlsSuspended) =>
     set((state) => ({
@@ -118,15 +272,64 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
     }),
   setStamina: (stamina) =>
-    set((state) => ({
-      player: { ...state.player, stamina: clampStamina(stamina) },
-    })),
+    set((state) => {
+      const nextStamina = clampStamina(stamina);
+
+      if (Math.abs(state.player.stamina - nextStamina) < 0.05) {
+        return state;
+      }
+
+      return {
+        player: { ...state.player, stamina: nextStamina },
+      };
+    }),
   setActiveInteraction: (id, prompt) =>
-    set({
-      interaction: {
-        activeInteractionId: id,
-        activeInteractionPrompt: prompt,
-      },
+    set((state) =>
+      state.interaction.activeInteractionId === id &&
+      state.interaction.activeInteractionPrompt === prompt
+        ? state
+        : {
+            interaction: {
+              activeInteractionId: id,
+              activeInteractionPrompt: prompt,
+            },
+          },
+    ),
+  setMobileMove: (moveX, moveY) =>
+    set((state) =>
+      state.mobileInput.moveX === moveX && state.mobileInput.moveY === moveY
+        ? state
+        : {
+            mobileInput: { ...state.mobileInput, moveX, moveY },
+          },
+    ),
+  setMobileLook: (lookX, lookY) =>
+    set((state) =>
+      state.mobileInput.lookX === lookX && state.mobileInput.lookY === lookY
+        ? state
+        : {
+            mobileInput: { ...state.mobileInput, lookX, lookY },
+          },
+    ),
+  setMobileSprint: (sprint) =>
+    set((state) =>
+      state.mobileInput.sprint === sprint
+        ? state
+        : {
+            mobileInput: { ...state.mobileInput, sprint },
+          },
+    ),
+  resetMobileInput: () => set({ mobileInput: initialMobileInput }),
+  updateSettings: (settings) =>
+    set((state) => {
+      const nextSettings = {
+        ...state.settings,
+        ...normalizeSettings(settings),
+      };
+
+      persistSettings(nextSettings);
+
+      return { settings: nextSettings };
     }),
   addInventoryItem: (item) =>
     set((state) => ({
@@ -254,6 +457,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
   completeGame: () =>
     set((state) => ({
+      gameStatus: "victory",
+      lastGameStatus: "victory",
       objective: "You escaped the mansion",
       progression: { ...state.progression, gameCompleted: true },
       player: {
@@ -276,18 +481,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
       player: { ...state.player, controlsSuspended: true },
     })),
   closeDocument: () =>
-    set((state) => ({
-      documentContent: null,
-      player: { ...state.player, controlsSuspended: false },
-    })),
+    set((state) => {
+      const isPlaying = state.gameStatus === "playing";
+
+      return {
+        documentContent: null,
+        player: { ...state.player, controlsSuspended: !isPlaying },
+      };
+    }),
   restartGame: () =>
     set((state) => ({
+      gameStatus: "playing",
+      lastGameStatus: "playing",
       pointerLocked: false,
       flashlightEnabled: false,
       flashlightHintVisible: true,
       objective: initialObjective,
       documentContent: null,
       inventory: [],
+      mobileInput: initialMobileInput,
       progression: initialProgression,
       interaction: { activeInteractionId: null, activeInteractionPrompt: null },
       studyRoom: initialStudyRoom,

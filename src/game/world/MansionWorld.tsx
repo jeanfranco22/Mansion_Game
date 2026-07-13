@@ -37,6 +37,7 @@ import { StudyRoomEventController } from "../scripted-events/StudyRoomEventContr
 import { useGameStore } from "../store/useGameStore";
 import { Corridor } from "./Corridor";
 import { DoorFrame } from "./DoorFrame";
+import { FlickeringLight } from "./FlickeringLight";
 import { Room } from "./Room";
 import { StaticBox } from "./StaticBox";
 import { Wall } from "./Wall";
@@ -60,9 +61,9 @@ export function MansionWorld() {
   return (
     <>
       <ambientLight intensity={electricityRestored ? 0.12 : 0.055} />
-      <pointLight color="#d9a85f" intensity={electricityRestored ? 55 : 36} position={[0, 2.6, 2]} />
-      <pointLight color="#6f8fb8" intensity={electricityRestored ? 30 : 12} position={[0, 2.25, -6.5]} />
-      <pointLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 88 : 48)} position={[4.2, 2.5, -8.2]} />
+      <FlickeringLight color="#d9a85f" intensity={electricityRestored ? 55 : 36} position={[0, 2.6, 2]} speed={1.4} />
+      <FlickeringLight color="#6f8fb8" intensity={electricityRestored ? 30 : 12} position={[0, 2.25, -6.5]} speed={2.1} />
+      <FlickeringLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 88 : 48)} position={[4.2, 2.5, -8.2]} speed={1.8} />
       <pointLight color="#8fd0ff" intensity={electricityRestored ? 34 : 0} position={[-5.8, 2.25, -5.8]} />
       <pointLight color="#97a7c9" intensity={electricityRestored ? 28 : 12} position={[0, 2.3, -17]} />
 

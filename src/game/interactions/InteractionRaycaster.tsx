@@ -6,6 +6,7 @@ import { Object3D, Raycaster, Vector2 } from "three";
 import {
   getInteraction,
   getInteractionPrompt,
+  triggerInteraction,
 } from "./interactionRegistry";
 import { useGameStore } from "../store/useGameStore";
 
@@ -31,7 +32,7 @@ function findInteractableId(object: Object3D): string | null {
 
 export function InteractionRaycaster() {
   const { camera, scene } = useThree();
-  const pointerLocked = useGameStore((state) => state.pointerLocked);
+  const gameStatus = useGameStore((state) => state.gameStatus);
   const controlsSuspended = useGameStore(
     (state) => state.player.controlsSuspended,
   );
@@ -51,13 +52,7 @@ export function InteractionRaycaster() {
         return;
       }
 
-      const interaction = getInteraction(activeInteractionId);
-
-      if (!interaction || interaction.enabled?.() === false) {
-        return;
-      }
-
-      interaction.onInteract();
+      triggerInteraction(activeInteractionId);
     }
 
     window.addEventListener("keydown", handleInteract);
@@ -65,7 +60,7 @@ export function InteractionRaycaster() {
   }, []);
 
   useFrame(() => {
-    if (!pointerLocked || controlsSuspended) {
+    if (gameStatus !== "playing" || controlsSuspended) {
       setActiveInteraction(null, null);
       return;
     }

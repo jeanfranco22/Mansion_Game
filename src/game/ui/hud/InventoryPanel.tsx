@@ -10,15 +10,18 @@ export function InventoryPanel() {
   }
 
   return (
-    <div className="absolute bottom-5 right-5 max-w-xs border border-zinc-100/10 bg-black/35 px-3 py-2 text-xs shadow-lg backdrop-blur">
-      <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-zinc-400">
-        Inventory
+    <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] max-w-[min(22rem,calc(100vw-2rem))] border border-zinc-100/10 bg-black/38 px-3 py-2 text-xs shadow-2xl backdrop-blur">
+      <div className="mb-2 flex items-center justify-between gap-4 text-[10px] uppercase tracking-[0.18em] text-zinc-400">
+        <span>Inventory</span>
+        <span>{inventory.length}</span>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {inventory.map((item) => (
+      <div className="flex flex-wrap justify-end gap-2">
+        {inventory.map((item, index) => (
           <div
-            className="border border-zinc-100/15 bg-zinc-100/8 px-2 py-1 text-zinc-100"
+            className="animate-inventory-item border border-zinc-100/15 bg-zinc-100/8 px-2.5 py-1.5 text-zinc-100"
             key={item.id}
+            style={{ animationDelay: `${index * 35}ms` }}
+            title={item.label}
           >
             {item.label}
           </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import {
   playGameSound,
+  setAudioMix,
   startAmbient,
   stopAllAudio,
   stopAmbient,
@@ -14,7 +15,15 @@ export function AudioController() {
   const isMoving = useGameStore((state) => state.player.isMoving);
   const isSprinting = useGameStore((state) => state.player.isSprinting);
   const gameCompleted = useGameStore((state) => state.progression.gameCompleted);
+  const masterVolume = useGameStore((state) => state.settings.masterVolume);
+  const musicVolume = useGameStore((state) => state.settings.musicVolume);
+  const sfxVolume = useGameStore((state) => state.settings.sfxVolume);
   const stepIndex = useRef(0);
+  const randomSoundTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    setAudioMix({ masterVolume, musicVolume, sfxVolume });
+  }, [masterVolume, musicVolume, sfxVolume]);
 
   useEffect(() => {
     if (pointerLocked && !gameCompleted) {
@@ -45,6 +54,37 @@ export function AudioController() {
 
     return () => window.clearInterval(interval);
   }, [gameCompleted, isMoving, isSprinting, pointerLocked]);
+
+  useEffect(() => {
+    if (!pointerLocked || gameCompleted) {
+      if (randomSoundTimer.current) {
+        window.clearTimeout(randomSoundTimer.current);
+        randomSoundTimer.current = null;
+      }
+      return;
+    }
+
+    function scheduleNextSound() {
+      randomSoundTimer.current = window.setTimeout(
+        () => {
+          const sounds = ["distantImpact", "lightFlicker"] as const;
+          const sound = sounds[Math.floor(Math.random() * sounds.length)];
+          playGameSound(sound, sound === "distantImpact" ? 0.22 : 0.12);
+          scheduleNextSound();
+        },
+        9000 + Math.random() * 13000,
+      );
+    }
+
+    scheduleNextSound();
+
+    return () => {
+      if (randomSoundTimer.current) {
+        window.clearTimeout(randomSoundTimer.current);
+        randomSoundTimer.current = null;
+      }
+    };
+  }, [gameCompleted, pointerLocked]);
 
   return null;
 }
