@@ -7,6 +7,7 @@ import { useGameStore } from "../store/useGameStore";
 type ReadableNoteProps = {
   id?: string;
   content?: string;
+  imageSrc?: string;
   onRead?: () => void;
   position: [number, number, number];
   rotationY?: number;
@@ -19,6 +20,7 @@ const noteText =
 export function ReadableNote({
   id = "study-note",
   content = noteText,
+  imageSrc,
   onRead,
   position,
   rotationY = 0,
@@ -29,11 +31,11 @@ export function ReadableNote({
     () => ({
       onInteract: () => {
         onRead?.();
-        openDocument(content);
+        openDocument(content, imageSrc);
       },
       prompt,
     }),
-    [content, onRead, openDocument, prompt],
+    [content, imageSrc, onRead, openDocument, prompt],
   );
 
   useRegisterInteraction(id, config);

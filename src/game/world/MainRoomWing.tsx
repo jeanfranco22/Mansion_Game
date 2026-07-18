@@ -195,7 +195,7 @@ function GalleryCorridor() {
 
 export function MainRoomWing() {
   const graphicsQuality = useGameStore((state) => state.settings.graphicsQuality);
-  const showGalleryLights = graphicsQuality === "high";
+  const showGalleryLights = graphicsQuality !== "low";
 
   return (
     <>
