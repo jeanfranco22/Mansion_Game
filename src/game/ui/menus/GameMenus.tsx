@@ -1,6 +1,7 @@
 "use client";
 
 import { useGameStore } from "../../store/useGameStore";
+import { CHAPTER_INTRO_TEXT } from "../../story/story";
 import { prepareGameViewFromUserAction } from "../browserControls";
 import { MenuButton } from "./MenuButton";
 import { SettingsMenu } from "./SettingsMenu";
@@ -61,6 +62,9 @@ export function GameMenus() {
               continuará con los recursos disponibles.
             </p>
           ) : null}
+          <p className="mt-5 text-sm leading-6 text-zinc-300">
+            {CHAPTER_INTRO_TEXT}
+          </p>
         </section>
       </div>
     );
@@ -137,8 +141,7 @@ export function GameMenus() {
           Vale House
         </h1>
         <p className="mt-4 max-w-lg text-base leading-7 text-zinc-300">
-          Explora la mansión, sigue las notas y encuentra la llave de la
-          primera habitación.
+          {CHAPTER_INTRO_TEXT}
         </p>
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <MenuButton

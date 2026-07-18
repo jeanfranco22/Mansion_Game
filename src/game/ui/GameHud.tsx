@@ -17,6 +17,7 @@ import { MobileControls } from "./mobile/MobileControls";
 
 export function GameHud() {
   const documentContent = useGameStore((state) => state.documentContent);
+  const documentImageSrc = useGameStore((state) => state.documentImageSrc);
   const gameStatus = useGameStore((state) => state.gameStatus);
   const showHud = gameStatus === "playing";
 
@@ -36,7 +37,9 @@ export function GameHud() {
         </>
       ) : null}
       <DebugPanel />
-      {documentContent ? <DocumentOverlay content={documentContent} /> : null}
+      {documentContent ? (
+        <DocumentOverlay content={documentContent} imageSrc={documentImageSrc} />
+      ) : null}
       <MobileControls />
       <GameMenus />
     </div>
