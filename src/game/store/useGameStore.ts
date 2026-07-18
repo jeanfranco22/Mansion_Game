@@ -85,7 +85,7 @@ type GameActions = {
   setObjective: (objective: Objective) => void;
   toggleFlashlight: () => void;
   dismissFlashlightHint: () => void;
-  openDocument: (content: string) => void;
+  openDocument: (content: string, imageSrc?: string) => void;
   closeDocument: () => void;
   restartGame: () => void;
 };
@@ -98,6 +98,7 @@ type GameStore = {
   flashlightHintVisible: boolean;
   objective: Objective;
   documentContent: string | null;
+  documentImageSrc: string | null;
   inventory: InventoryItem[];
   loading: LoadingState;
   mainRooms: MainRoomsState;
@@ -235,6 +236,7 @@ function createFreshRunState(state: GameStore): Partial<GameStore> {
     flashlightHintVisible: true,
     objective: initialObjective,
     documentContent: null,
+    documentImageSrc: null,
     inventory: [],
     mainRooms: initialMainRooms,
     mobileInput: initialMobileInput,
@@ -284,6 +286,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   flashlightHintVisible: true,
   objective: initialObjective,
   documentContent: null,
+  documentImageSrc: null,
   inventory: [],
   loading: initialLoading,
   mainRooms: initialMainRooms,
@@ -754,9 +757,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       flashlightHintVisible: false,
     })),
   dismissFlashlightHint: () => set({ flashlightHintVisible: false }),
-  openDocument: (content) =>
+  openDocument: (content, imageSrc = undefined) =>
     set((state) => ({
       documentContent: content,
+      documentImageSrc: imageSrc ?? null,
       player: { ...state.player, controlsSuspended: true },
     })),
   closeDocument: () =>
@@ -765,6 +769,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       return {
         documentContent: null,
+        documentImageSrc: null,
         player: { ...state.player, controlsSuspended: !isPlaying },
       };
     }),

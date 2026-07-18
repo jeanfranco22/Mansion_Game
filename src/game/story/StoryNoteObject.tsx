@@ -15,6 +15,7 @@ export function StoryNoteObject({ note }: StoryNoteObjectProps) {
     <ReadableNote
       content={note.content}
       id={note.id}
+      imageSrc={note.imageSrc}
       onRead={() => readStoryNote(note.id)}
       position={note.position}
       prompt={note.prompt}

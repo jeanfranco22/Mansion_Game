@@ -37,10 +37,12 @@ import { StudyRoomEventController } from "../scripted-events/StudyRoomEventContr
 import {
   CHAPTER_ONE_KEY,
   CHAPTER_ONE_NOTES,
+  ROOM_ONE_MEMORY_NOTE,
   STORY_NOTE_ORDER,
 } from "../story/story";
 import { StoryNoteObject } from "../story/StoryNoteObject";
 import { useGameStore } from "../store/useGameStore";
+import { ReadableNote } from "../objects/ReadableNote";
 import { Corridor } from "./Corridor";
 import { DoorFrame } from "./DoorFrame";
 import { FlickeringLight } from "./FlickeringLight";
@@ -81,12 +83,18 @@ export function MansionWorld() {
 
   return (
     <>
-      <ambientLight intensity={electricityRestored ? 0.12 : 0.055} />
-      <FlickeringLight color="#d9a85f" intensity={electricityRestored ? 55 : 36} position={[0, 2.6, 2]} speed={1.4} />
-      <FlickeringLight color="#6f8fb8" intensity={electricityRestored ? 30 : 12} position={[0, 2.25, -6.5]} speed={2.1} />
-      <FlickeringLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 88 : 48)} position={[4.2, 2.5, -8.2]} speed={1.8} />
-      <pointLight color="#8fd0ff" intensity={electricityRestored ? 34 : 0} position={[-5.8, 2.25, -5.8]} />
-      <pointLight color="#97a7c9" intensity={electricityRestored ? 28 : 12} position={[0, 2.3, -17]} />
+      <ambientLight intensity={electricityRestored ? 0.28 : 0.2} />
+      <hemisphereLight
+        color="#f7e7c5"
+        groundColor="#4e535c"
+        intensity={electricityRestored ? 0.34 : 0.24}
+      />
+      <FlickeringLight color="#d9a85f" intensity={electricityRestored ? 72 : 54} position={[0, 2.6, 2]} speed={1.4} />
+      <FlickeringLight color="#6f8fb8" intensity={electricityRestored ? 46 : 30} position={[0, 2.25, -6.5]} speed={2.1} />
+      <FlickeringLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 108 : 72)} position={[4.2, 2.5, -8.2]} speed={1.8} />
+      <pointLight color="#8fd0ff" intensity={electricityRestored ? 44 : 18} position={[-5.8, 2.25, -5.8]} />
+      <pointLight color="#97a7c9" intensity={electricityRestored ? 42 : 24} position={[0, 2.3, -17]} />
+      <pointLight color="#f0d6a0" distance={7} intensity={18} position={[8, 2.45, 5.2]} />
 
       <Room center={[0, 2]} floorColor="#4d4944" size={[8, 8]} walls={false} />
       <Room center={[-4.15, -6]} floorColor="#463f38" size={[6, 5]} walls={false} />
@@ -216,6 +224,14 @@ export function MansionWorld() {
       {visibleStoryNotes.map((note) => (
         <StoryNoteObject key={note.id} note={note} />
       ))}
+      <ReadableNote
+        content={ROOM_ONE_MEMORY_NOTE.content}
+        id={ROOM_ONE_MEMORY_NOTE.id}
+        imageSrc={ROOM_ONE_MEMORY_NOTE.imageSrc}
+        position={ROOM_ONE_MEMORY_NOTE.position}
+        prompt={ROOM_ONE_MEMORY_NOTE.prompt}
+        rotationY={ROOM_ONE_MEMORY_NOTE.rotationY}
+      />
       <FuseBox />
       <BookOrderPuzzle />
       <OfficeSafe />
