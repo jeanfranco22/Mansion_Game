@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Group } from "three";
 import { useRegisterInteraction } from "../interactions/useRegisterInteraction";
+import { useGameStore } from "../store/useGameStore";
 import { StaticBox } from "../world/StaticBox";
 
 type AnimatedDoorProps = {
@@ -30,6 +31,10 @@ export function AnimatedDoor({
   color = "#4b2f20",
 }: AnimatedDoorProps) {
   const groupRef = useRef<Group>(null);
+  const activeInteractionId = useGameStore(
+    (state) => state.interaction.activeInteractionId,
+  );
+  const isActive = activeInteractionId === id;
   const config = useMemo(
     () => ({
       enabled: () => !disabled?.(),
@@ -49,7 +54,7 @@ export function AnimatedDoor({
     }
 
     const target = rotationY + (isOpen ? openAngle : 0);
-    group.rotation.y += (target - group.rotation.y) * Math.min(1, delta * 8);
+    group.rotation.y += (target - group.rotation.y) * Math.min(1, delta * 5.2);
   });
 
   return (
@@ -66,7 +71,12 @@ export function AnimatedDoor({
         </mesh>
         <mesh position={[0.38, 1.05, -0.08]} scale={[0.08, 0.08, 0.06]}>
           <sphereGeometry args={[1, 12, 8]} />
-          <meshStandardMaterial color="#bca66d" roughness={0.35} />
+          <meshStandardMaterial
+            color={isActive ? "#f1d990" : "#bca66d"}
+            emissive={isActive ? "#caa95e" : "#000000"}
+            emissiveIntensity={isActive ? 0.22 : 0}
+            roughness={0.35}
+          />
         </mesh>
       </group>
       {!isOpen ? (

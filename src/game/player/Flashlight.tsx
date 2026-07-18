@@ -14,6 +14,7 @@ export function Flashlight() {
   const pointLightRef = useRef<PointLight>(null);
   const enabled = useGameStore((state) => state.flashlightEnabled);
   const isMoving = useGameStore((state) => state.player.isMoving);
+  const graphicsQuality = useGameStore((state) => state.settings.graphicsQuality);
   const toggleFlashlight = useGameStore((state) => state.toggleFlashlight);
 
   useEffect(() => {
@@ -43,10 +44,11 @@ export function Flashlight() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [toggleFlashlight]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const spotlight = spotlightRef.current;
+    const pointLight = pointLightRef.current;
 
-    if (!spotlight) {
+    if (!spotlight || !pointLight) {
       return;
     }
 
@@ -62,24 +64,32 @@ export function Flashlight() {
     flashlightTarget.position.x += swayX * 3;
     flashlightTarget.position.y += swayY * 2;
     spotlight.target.updateMatrixWorld();
-    pointLightRef.current?.position.copy(camera.position);
-  });
+    pointLight.position.copy(camera.position);
 
-  if (!enabled) {
-    return null;
-  }
+    const qualityMultiplier =
+      graphicsQuality === "high" ? 1 : graphicsQuality === "medium" ? 0.82 : 0.68;
+    const spotTarget = enabled ? 7.5 * qualityMultiplier : 0;
+    const pointTarget = enabled ? 0.55 * qualityMultiplier : 0;
+
+    spotlight.intensity +=
+      (spotTarget - spotlight.intensity) * Math.min(1, delta * 8);
+    pointLight.intensity +=
+      (pointTarget - pointLight.intensity) * Math.min(1, delta * 8);
+  });
 
   return (
     <>
       <spotLight
         ref={spotlightRef}
         angle={0.36}
-        castShadow
+        castShadow={graphicsQuality === "high"}
         color="#fff1d0"
         decay={1.6}
-        distance={12}
-        intensity={7.5}
+        distance={graphicsQuality === "low" ? 9 : 12}
+        intensity={0}
         penumbra={0.65}
+        shadow-mapSize-height={graphicsQuality === "high" ? 1024 : 256}
+        shadow-mapSize-width={graphicsQuality === "high" ? 1024 : 256}
         target={flashlightTarget}
       />
       <pointLight
@@ -87,7 +97,7 @@ export function Flashlight() {
         color="#fff0c6"
         decay={2}
         distance={3.2}
-        intensity={0.55}
+        intensity={0}
       />
     </>
   );

@@ -43,13 +43,19 @@ const cameraPosition = new Vector3();
 
 export function AmbientSoundscape() {
   const { camera } = useThree();
-  const pointerLocked = useGameStore((state) => state.pointerLocked);
+  const gameStatus = useGameStore((state) => state.gameStatus);
   const gameCompleted = useGameStore((state) => state.progression.gameCompleted);
+  const masterVolume = useGameStore((state) => state.settings.masterVolume);
+  const sfxVolume = useGameStore((state) => state.settings.sfxVolume);
   const audioContextRef = useRef<AudioContext | null>(null);
   const emittersRef = useRef<ActiveEmitter[]>([]);
 
   useEffect(() => {
-    if (!pointerLocked || gameCompleted || audioContextRef.current) {
+    if (
+      gameStatus !== "playing" ||
+      gameCompleted ||
+      audioContextRef.current
+    ) {
       return;
     }
 
@@ -96,7 +102,7 @@ export function AmbientSoundscape() {
       emittersRef.current = [];
       audioContextRef.current = null;
     };
-  }, [gameCompleted, pointerLocked]);
+  }, [gameCompleted, gameStatus]);
 
   useFrame((state) => {
     const context = audioContextRef.current;
@@ -113,8 +119,10 @@ export function AmbientSoundscape() {
       const flutter = 0.75 + Math.sin(state.clock.elapsedTime * 0.7 + distance) * 0.25;
       const pan = Math.max(-1, Math.min(1, (emitter.position.x - cameraPosition.x) / 6));
 
+      const volume = emitter.baseGain * attenuation * flutter * masterVolume * sfxVolume;
+
       emitter.gain.gain.setTargetAtTime(
-        emitter.baseGain * attenuation * flutter,
+        volume,
         context.currentTime,
         0.08,
       );

@@ -3,6 +3,11 @@ import { audioFiles, type GameSound } from "./audioFiles";
 const missingFiles = new Set<GameSound>();
 const cache = new Map<GameSound, HTMLAudioElement>();
 const availabilityChecks = new Map<GameSound, Promise<boolean>>();
+const audioMix = {
+  masterVolume: 0.85,
+  musicVolume: 0,
+  sfxVolume: 0.85,
+};
 
 function canUseAudio() {
   return typeof window !== "undefined" && typeof Audio !== "undefined";
@@ -70,7 +75,15 @@ export function playGameSound(sound: GameSound, volume = 0.45) {
     }
 
     const instance = audio.cloneNode(true) as HTMLAudioElement;
-    instance.volume = volume;
+    instance.volume = Math.min(1, volume * audioMix.masterVolume * audioMix.sfxVolume);
+    instance.addEventListener(
+      "ended",
+      () => {
+        instance.removeAttribute("src");
+        instance.load();
+      },
+      { once: true },
+    );
     void instance.play().catch(() => undefined);
   });
 }
@@ -82,9 +95,25 @@ export function startAmbient() {
     }
 
     ambient.loop = true;
-    ambient.volume = 0.18;
+    ambient.volume = 0.18 * audioMix.masterVolume * audioMix.musicVolume;
     void ambient.play().catch(() => undefined);
   });
+}
+
+export function setAudioMix(settings: {
+  masterVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+}) {
+  audioMix.masterVolume = settings.masterVolume;
+  audioMix.musicVolume = settings.musicVolume;
+  audioMix.sfxVolume = settings.sfxVolume;
+
+  const ambient = cache.get("ambient");
+
+  if (ambient) {
+    ambient.volume = 0.18 * audioMix.masterVolume * audioMix.musicVolume;
+  }
 }
 
 export function stopAmbient() {

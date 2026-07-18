@@ -21,3 +21,17 @@ export function getInteraction(id: string) {
 export function getInteractionPrompt(config: InteractionConfig) {
   return typeof config.prompt === "function" ? config.prompt() : config.prompt;
 }
+
+export function triggerInteraction(id: string | null) {
+  if (!id) {
+    return;
+  }
+
+  const interaction = getInteraction(id);
+
+  if (!interaction || interaction.enabled?.() === false) {
+    return;
+  }
+
+  interaction.onInteract();
+}

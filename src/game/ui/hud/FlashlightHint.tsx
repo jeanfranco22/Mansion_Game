@@ -24,7 +24,7 @@ export function FlashlightHint() {
   }
 
   return (
-    <div className="absolute bottom-16 left-1/2 -translate-x-1/2 text-sm text-zinc-300">
+    <div className="absolute bottom-[max(4rem,env(safe-area-inset-bottom)+3rem)] left-1/2 max-w-[calc(100vw-2rem)] -translate-x-1/2 bg-black/28 px-3 py-2 text-center text-sm text-zinc-300 backdrop-blur">
       Press F to toggle the flashlight
     </div>
   );

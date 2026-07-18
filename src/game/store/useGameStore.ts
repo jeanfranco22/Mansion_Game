@@ -1,25 +1,55 @@
 import { create } from "zustand";
 import {
+  initialLoading,
+  initialMainRooms,
+  initialMobileInput,
   initialObjective,
   initialProgression,
+  initialSettings,
   initialStudyRoom,
 } from "./gameDefaults";
 import type {
+  GraphicsQuality,
+  GameStatus,
   InteractionState,
   InventoryItem,
   InventoryItemId,
+  LoadingState,
+  MainRoomId,
+  MainRoomsState,
+  MobileInputState,
   Objective,
   PlayerRuntimeState,
   ProgressionState,
+  SettingsState,
   StudyRoomState,
 } from "./gameStoreTypes";
 
 type GameActions = {
+  hydrateSettings: () => void;
+  setRendererReady: () => void;
+  setAssetsReady: (assetErrors?: number) => void;
+  setLoadingError: (fatalError: string) => void;
+  setWorldReady: () => void;
+  setPlayerReady: () => void;
+  startGame: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
+  openSettings: () => void;
+  closeSettings: () => void;
   setPointerLocked: (pointerLocked: boolean) => void;
   setControlsSuspended: (controlsSuspended: boolean) => void;
   setPlayerMovement: (isMoving: boolean, isSprinting: boolean) => void;
   setStamina: (stamina: number) => void;
   setActiveInteraction: (id: string | null, prompt: string | null) => void;
+  setMobileMove: (moveX: number, moveY: number) => void;
+  setMobileLook: (lookX: number, lookY: number) => void;
+  setMobileSprint: (sprint: boolean) => void;
+  resetMobileInput: () => void;
+  updateSettings: (settings: Partial<SettingsState>) => void;
+  setRoomLocked: (roomId: MainRoomId, locked: boolean) => void;
+  setRoomDoorOpen: (roomId: MainRoomId, doorOpen: boolean) => void;
+  toggleRoomDoor: (roomId: MainRoomId) => void;
   addInventoryItem: (item: InventoryItem) => void;
   hasInventoryItem: (id: InventoryItemId) => boolean;
   collectMainKey: () => void;
@@ -53,12 +83,18 @@ type GameActions = {
 };
 
 type GameStore = {
+  gameStatus: GameStatus;
+  lastGameStatus: GameStatus;
   pointerLocked: boolean;
   flashlightEnabled: boolean;
   flashlightHintVisible: boolean;
   objective: Objective;
   documentContent: string | null;
   inventory: InventoryItem[];
+  loading: LoadingState;
+  mainRooms: MainRoomsState;
+  settings: SettingsState;
+  mobileInput: MobileInputState;
   progression: ProgressionState;
   player: PlayerRuntimeState;
   interaction: InteractionState;
@@ -66,6 +102,77 @@ type GameStore = {
 } & GameActions;
 
 const clampStamina = (stamina: number) => Math.min(100, Math.max(0, stamina));
+const SETTINGS_STORAGE_KEY = "vale-house-settings-v1";
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const clampSensitivity = (value: number) => Math.min(1.8, Math.max(0.45, value));
+const graphicsQualities = new Set<GraphicsQuality>(["low", "medium", "high"]);
+
+function normalizeSettings(settings: Partial<SettingsState>) {
+  const normalized: Partial<SettingsState> = {};
+
+  if (typeof settings.fullscreen === "boolean") {
+    normalized.fullscreen = settings.fullscreen;
+  }
+
+  if (
+    typeof settings.graphicsQuality === "string" &&
+    graphicsQualities.has(settings.graphicsQuality as GraphicsQuality)
+  ) {
+    normalized.graphicsQuality = settings.graphicsQuality as GraphicsQuality;
+  }
+
+  if (typeof settings.mouseSensitivity === "number") {
+    normalized.mouseSensitivity = clampSensitivity(settings.mouseSensitivity);
+  }
+
+  if (typeof settings.masterVolume === "number") {
+    normalized.masterVolume = clamp01(settings.masterVolume);
+  }
+
+  if (typeof settings.musicVolume === "number") {
+    normalized.musicVolume = clamp01(settings.musicVolume);
+  }
+
+  if (typeof settings.sfxVolume === "number") {
+    normalized.sfxVolume = clamp01(settings.sfxVolume);
+  }
+
+  return normalized;
+}
+
+function loadPersistedSettings(): SettingsState {
+  if (typeof window === "undefined") {
+    return initialSettings;
+  }
+
+  try {
+    const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
+    if (!storedSettings) {
+      return initialSettings;
+    }
+
+    return {
+      ...initialSettings,
+      ...normalizeSettings(JSON.parse(storedSettings) as Partial<SettingsState>),
+    };
+  } catch {
+    return initialSettings;
+  }
+}
+
+function persistSettings(settings: SettingsState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // Settings still apply in memory if storage is unavailable.
+  }
+}
 
 function addUniqueInventoryItem(
   inventory: InventoryItem[],
@@ -78,16 +185,80 @@ function addUniqueInventoryItem(
   return [...inventory, item];
 }
 
+function isLoadingComplete(loading: LoadingState) {
+  return (
+    loading.assetsReady &&
+    loading.playerReady &&
+    loading.rendererReady &&
+    loading.settingsHydrated &&
+    loading.worldReady
+  );
+}
+
+function getStatusAfterLoading(
+  gameStatus: GameStatus,
+  loading: LoadingState,
+) {
+  return gameStatus === "loading" && isLoadingComplete(loading)
+    ? "mainMenu"
+    : gameStatus;
+}
+
+function updateLoadingState(
+  state: GameStore,
+  loading: LoadingState,
+): Partial<GameStore> {
+  return {
+    gameStatus: getStatusAfterLoading(state.gameStatus, loading),
+    lastGameStatus:
+      state.lastGameStatus === "loading" && isLoadingComplete(loading)
+        ? "mainMenu"
+        : state.lastGameStatus,
+    loading,
+  };
+}
+
+function createFreshRunState(state: GameStore): Partial<GameStore> {
+  return {
+    gameStatus: "playing",
+    lastGameStatus: "playing",
+    pointerLocked: false,
+    flashlightEnabled: false,
+    flashlightHintVisible: true,
+    objective: initialObjective,
+    documentContent: null,
+    inventory: [],
+    mainRooms: initialMainRooms,
+    mobileInput: initialMobileInput,
+    progression: initialProgression,
+    interaction: { activeInteractionId: null, activeInteractionPrompt: null },
+    studyRoom: initialStudyRoom,
+    player: {
+      controlsSuspended: false,
+      isMoving: false,
+      isSprinting: false,
+      stamina: 100,
+      resetCounter: state.player.resetCounter + 1,
+    },
+  };
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
+  gameStatus: "loading",
+  lastGameStatus: "loading",
   pointerLocked: false,
   flashlightEnabled: false,
   flashlightHintVisible: true,
   objective: initialObjective,
   documentContent: null,
   inventory: [],
+  loading: initialLoading,
+  mainRooms: initialMainRooms,
+  settings: initialSettings,
+  mobileInput: initialMobileInput,
   progression: initialProgression,
   player: {
-    controlsSuspended: false,
+    controlsSuspended: true,
     isMoving: false,
     isSprinting: false,
     stamina: 100,
@@ -99,6 +270,169 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   studyRoom: initialStudyRoom,
 
+  hydrateSettings: () =>
+    set((state) => {
+      if (state.loading.settingsHydrated) {
+        return state;
+      }
+
+      const loading = { ...state.loading, settingsHydrated: true };
+
+      return {
+        ...updateLoadingState(state, loading),
+        settings: loadPersistedSettings(),
+      };
+    }),
+  setRendererReady: () =>
+    set((state) => {
+      if (state.loading.rendererReady) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        rendererReady: true,
+      });
+    }),
+  setAssetsReady: (assetErrors = 0) =>
+    set((state) => {
+      if (
+        state.loading.assetsReady &&
+        state.loading.assetErrors === assetErrors
+      ) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        assetErrors,
+        assetsReady: true,
+      });
+    }),
+  setLoadingError: (fatalError) =>
+    set((state) => ({
+      loading: {
+        ...state.loading,
+        fatalError,
+      },
+      player: {
+        ...state.player,
+        controlsSuspended: true,
+        isMoving: false,
+        isSprinting: false,
+      },
+    })),
+  setWorldReady: () =>
+    set((state) => {
+      if (state.loading.worldReady) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        worldReady: true,
+      });
+    }),
+  setPlayerReady: () =>
+    set((state) => {
+      if (state.loading.playerReady) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        playerReady: true,
+      });
+    }),
+  startGame: () =>
+    set((state) => {
+      if (state.gameStatus === "mainMenu") {
+        return createFreshRunState(state);
+      }
+
+      if (state.gameStatus === "paused") {
+        return {
+          gameStatus: "playing",
+          lastGameStatus: "playing",
+          player: { ...state.player, controlsSuspended: false },
+        };
+      }
+
+      return state;
+    }),
+  pauseGame: () =>
+    set((state) => {
+      if (state.gameStatus !== "playing") {
+        return state;
+      }
+
+      if (typeof document !== "undefined" && document.pointerLockElement) {
+        document.exitPointerLock?.();
+      }
+
+      return {
+            gameStatus: "paused",
+            lastGameStatus: "playing",
+            pointerLocked: false,
+            mobileInput: initialMobileInput,
+            player: {
+              ...state.player,
+              controlsSuspended: true,
+              isMoving: false,
+              isSprinting: false,
+            },
+          };
+    }),
+  resumeGame: () =>
+    set((state) =>
+      state.gameStatus !== "paused"
+        ? state
+        : {
+            gameStatus: "playing",
+            lastGameStatus: "playing",
+            player: { ...state.player, controlsSuspended: false },
+          },
+    ),
+  openSettings: () =>
+    set((state) => {
+      if (typeof document !== "undefined" && document.pointerLockElement) {
+        document.exitPointerLock?.();
+      }
+
+      return {
+        gameStatus: "settings",
+        lastGameStatus:
+          state.gameStatus === "settings" ? state.lastGameStatus : state.gameStatus,
+        pointerLocked: false,
+        mobileInput: initialMobileInput,
+        player: {
+          ...state.player,
+          controlsSuspended: true,
+          isMoving: false,
+          isSprinting: false,
+        },
+      };
+    }),
+  closeSettings: () =>
+    set((state) => {
+      const nextStatus =
+        state.lastGameStatus === "playing" ||
+        state.lastGameStatus === "paused" ||
+        state.lastGameStatus === "victory" ||
+        state.lastGameStatus === "mainMenu"
+          ? state.lastGameStatus
+          : isLoadingComplete(state.loading)
+            ? "mainMenu"
+            : "loading";
+
+      return {
+        gameStatus: nextStatus,
+        player: {
+          ...state.player,
+          controlsSuspended: nextStatus !== "playing",
+        },
+      };
+    }),
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
   setControlsSuspended: (controlsSuspended) =>
     set((state) => ({
@@ -118,15 +452,105 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
     }),
   setStamina: (stamina) =>
-    set((state) => ({
-      player: { ...state.player, stamina: clampStamina(stamina) },
-    })),
+    set((state) => {
+      const nextStamina = clampStamina(stamina);
+
+      if (Math.abs(state.player.stamina - nextStamina) < 0.05) {
+        return state;
+      }
+
+      return {
+        player: { ...state.player, stamina: nextStamina },
+      };
+    }),
   setActiveInteraction: (id, prompt) =>
-    set({
-      interaction: {
-        activeInteractionId: id,
-        activeInteractionPrompt: prompt,
+    set((state) =>
+      state.interaction.activeInteractionId === id &&
+      state.interaction.activeInteractionPrompt === prompt
+        ? state
+        : {
+            interaction: {
+              activeInteractionId: id,
+              activeInteractionPrompt: prompt,
+            },
+          },
+    ),
+  setMobileMove: (moveX, moveY) =>
+    set((state) =>
+      state.mobileInput.moveX === moveX && state.mobileInput.moveY === moveY
+        ? state
+        : {
+            mobileInput: { ...state.mobileInput, moveX, moveY },
+          },
+    ),
+  setMobileLook: (lookX, lookY) =>
+    set((state) =>
+      state.mobileInput.lookX === lookX && state.mobileInput.lookY === lookY
+        ? state
+        : {
+            mobileInput: { ...state.mobileInput, lookX, lookY },
+          },
+    ),
+  setMobileSprint: (sprint) =>
+    set((state) =>
+      state.mobileInput.sprint === sprint
+        ? state
+        : {
+            mobileInput: { ...state.mobileInput, sprint },
+          },
+    ),
+  resetMobileInput: () => set({ mobileInput: initialMobileInput }),
+  updateSettings: (settings) =>
+    set((state) => {
+      const nextSettings = {
+        ...state.settings,
+        ...normalizeSettings(settings),
+      };
+
+      persistSettings(nextSettings);
+
+      return { settings: nextSettings };
+    }),
+  setRoomLocked: (roomId, locked) =>
+    set((state) => ({
+      mainRooms: {
+        ...state.mainRooms,
+        [roomId]: {
+          ...state.mainRooms[roomId],
+          locked,
+          doorOpen: locked ? false : state.mainRooms[roomId].doorOpen,
+        },
       },
+    })),
+  setRoomDoorOpen: (roomId, doorOpen) =>
+    set((state) => {
+      const room = state.mainRooms[roomId];
+
+      if (room.locked) {
+        return state;
+      }
+
+      return {
+        mainRooms: {
+          ...state.mainRooms,
+          [roomId]: { ...room, doorOpen },
+        },
+      };
+    }),
+  toggleRoomDoor: (roomId) =>
+    set((state) => {
+      const room = state.mainRooms[roomId];
+
+      if (room.locked) {
+        return state;
+      }
+
+      return {
+        mainRooms: {
+          ...state.mainRooms,
+          [roomId]: { ...room, doorOpen: !room.doorOpen },
+        },
+      };
     }),
   addInventoryItem: (item) =>
     set((state) => ({
@@ -254,6 +678,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
   completeGame: () =>
     set((state) => ({
+      gameStatus: "victory",
+      lastGameStatus: "victory",
       objective: "You escaped the mansion",
       progression: { ...state.progression, gameCompleted: true },
       player: {
@@ -276,27 +702,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       player: { ...state.player, controlsSuspended: true },
     })),
   closeDocument: () =>
-    set((state) => ({
-      documentContent: null,
-      player: { ...state.player, controlsSuspended: false },
-    })),
+    set((state) => {
+      const isPlaying = state.gameStatus === "playing";
+
+      return {
+        documentContent: null,
+        player: { ...state.player, controlsSuspended: !isPlaying },
+      };
+    }),
   restartGame: () =>
-    set((state) => ({
-      pointerLocked: false,
-      flashlightEnabled: false,
-      flashlightHintVisible: true,
-      objective: initialObjective,
-      documentContent: null,
-      inventory: [],
-      progression: initialProgression,
-      interaction: { activeInteractionId: null, activeInteractionPrompt: null },
-      studyRoom: initialStudyRoom,
-      player: {
-        controlsSuspended: false,
-        isMoving: false,
-        isSprinting: false,
-        stamina: 100,
-        resetCounter: state.player.resetCounter + 1,
-      },
-    })),
+    set((state) => createFreshRunState(state)),
 }));
