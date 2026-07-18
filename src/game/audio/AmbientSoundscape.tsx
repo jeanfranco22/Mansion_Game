@@ -43,7 +43,6 @@ const cameraPosition = new Vector3();
 
 export function AmbientSoundscape() {
   const { camera } = useThree();
-  const pointerLocked = useGameStore((state) => state.pointerLocked);
   const gameStatus = useGameStore((state) => state.gameStatus);
   const gameCompleted = useGameStore((state) => state.progression.gameCompleted);
   const masterVolume = useGameStore((state) => state.settings.masterVolume);
@@ -53,7 +52,7 @@ export function AmbientSoundscape() {
 
   useEffect(() => {
     if (
-      (!pointerLocked && gameStatus !== "playing") ||
+      gameStatus !== "playing" ||
       gameCompleted ||
       audioContextRef.current
     ) {
@@ -103,7 +102,7 @@ export function AmbientSoundscape() {
       emittersRef.current = [];
       audioContextRef.current = null;
     };
-  }, [gameCompleted, gameStatus, pointerLocked]);
+  }, [gameCompleted, gameStatus]);
 
   useFrame((state) => {
     const context = audioContextRef.current;

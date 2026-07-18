@@ -12,6 +12,7 @@ import { useGameStore } from "../store/useGameStore";
 
 export function AudioController() {
   const pointerLocked = useGameStore((state) => state.pointerLocked);
+  const gameStatus = useGameStore((state) => state.gameStatus);
   const isMoving = useGameStore((state) => state.player.isMoving);
   const isSprinting = useGameStore((state) => state.player.isSprinting);
   const gameCompleted = useGameStore((state) => state.progression.gameCompleted);
@@ -26,13 +27,13 @@ export function AudioController() {
   }, [masterVolume, musicVolume, sfxVolume]);
 
   useEffect(() => {
-    if (pointerLocked && !gameCompleted) {
+    if (gameStatus === "playing" && pointerLocked && !gameCompleted) {
       startAmbient();
       return;
     }
 
     stopAmbient();
-  }, [gameCompleted, pointerLocked]);
+  }, [gameCompleted, gameStatus, pointerLocked]);
 
   useEffect(() => {
     if (gameCompleted) {
@@ -41,7 +42,7 @@ export function AudioController() {
   }, [gameCompleted]);
 
   useEffect(() => {
-    if (!pointerLocked || !isMoving || gameCompleted) {
+    if (gameStatus !== "playing" || !pointerLocked || !isMoving || gameCompleted) {
       return;
     }
 
@@ -53,10 +54,10 @@ export function AudioController() {
     }, intervalMs);
 
     return () => window.clearInterval(interval);
-  }, [gameCompleted, isMoving, isSprinting, pointerLocked]);
+  }, [gameCompleted, gameStatus, isMoving, isSprinting, pointerLocked]);
 
   useEffect(() => {
-    if (!pointerLocked || gameCompleted) {
+    if (gameStatus !== "playing" || !pointerLocked || gameCompleted) {
       if (randomSoundTimer.current) {
         window.clearTimeout(randomSoundTimer.current);
         randomSoundTimer.current = null;
@@ -84,7 +85,7 @@ export function AudioController() {
         randomSoundTimer.current = null;
       }
     };
-  }, [gameCompleted, pointerLocked]);
+  }, [gameCompleted, gameStatus, pointerLocked]);
 
   return null;
 }

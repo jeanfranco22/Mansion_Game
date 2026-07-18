@@ -24,7 +24,7 @@ export function DustParticles() {
   const pointsRef = useRef<Points>(null);
   const graphicsQuality = useGameStore((state) => state.settings.graphicsQuality);
   const count =
-    graphicsQuality === "high" ? 180 : graphicsQuality === "medium" ? 80 : 0;
+    graphicsQuality === "high" ? 120 : graphicsQuality === "medium" ? 45 : 0;
   const geometry = useMemo(() => createDustGeometry(count), [count]);
 
   useEffect(() => () => geometry.dispose(), [geometry]);

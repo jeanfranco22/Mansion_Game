@@ -2,11 +2,9 @@
 
 import { useEffect } from "react";
 import { useGameStore } from "../../store/useGameStore";
-import { activateGameView } from "../browserControls";
 
 export function PauseController() {
   const pauseGame = useGameStore((state) => state.pauseGame);
-  const resumeGame = useGameStore((state) => state.resumeGame);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -21,20 +19,18 @@ export function PauseController() {
       }
 
       if (state.gameStatus === "playing") {
+        event.preventDefault();
         document.exitPointerLock?.();
         pauseGame();
-        return;
-      }
-
-      if (state.gameStatus === "paused") {
-        resumeGame();
-        activateGameView();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [pauseGame, resumeGame]);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [pauseGame]);
 
   return null;
 }

@@ -22,7 +22,7 @@ export function FlickeringLight({
 }: FlickeringLightProps) {
   const lightRef = useRef<PointLight>(null);
   const graphicsQuality = useGameStore((state) => state.settings.graphicsQuality);
-  const shadowMapSize = graphicsQuality === "high" ? 512 : 256;
+  const shadowMapSize = graphicsQuality === "high" ? 384 : 128;
 
   useFrame((state) => {
     const light = lightRef.current;
@@ -41,7 +41,7 @@ export function FlickeringLight({
   return (
     <pointLight
       ref={lightRef}
-      castShadow={graphicsQuality === "high"}
+      castShadow={graphicsQuality === "high" && intensity > 0}
       color={color}
       distance={graphicsQuality === "low" ? Math.min(distance, 4.8) : distance}
       intensity={intensity}

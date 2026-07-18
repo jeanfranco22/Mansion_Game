@@ -4,7 +4,7 @@ import { PointerLockControls, useKeyboardControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody } from "@react-three/rapier";
 import type { RapierRigidBody } from "@react-three/rapier";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MathUtils, Vector3 } from "three";
 import { playerSpawnPosition } from "../store/gameDefaults";
 import { useGameStore } from "../store/useGameStore";
@@ -26,10 +26,12 @@ const targetMoveVector = new Vector3();
 export function FirstPersonController() {
   const bodyRef = useRef<RapierRigidBody>(null);
   const hasAlignedCamera = useRef(false);
+  const hasReportedReady = useRef(false);
   const smoothedMoveRef = useRef(new Vector3());
   const bobTimeRef = useRef(0);
   const { camera } = useThree();
   const cameraRef = useRef(camera);
+  const [canUsePointerLock, setCanUsePointerLock] = useState(false);
   const [, getControls] = useKeyboardControls<PlayerControl>();
   const controlsSuspended = useGameStore(
     (state) => state.player.controlsSuspended,
@@ -39,6 +41,7 @@ export function FirstPersonController() {
     (state) => state.settings.mouseSensitivity,
   );
   const setPointerLocked = useGameStore((state) => state.setPointerLocked);
+  const setPlayerReady = useGameStore((state) => state.setPlayerReady);
   const setPlayerMovement = useGameStore((state) => state.setPlayerMovement);
   const setStamina = useGameStore((state) => state.setStamina);
 
@@ -47,10 +50,37 @@ export function FirstPersonController() {
   }, [camera]);
 
   useEffect(() => {
+    const query = window.matchMedia("(pointer: coarse)");
+    const updatePointerLockAvailability = () => {
+      setCanUsePointerLock(!query.matches && window.navigator.maxTouchPoints === 0);
+    };
+
+    updatePointerLockAvailability();
+    query.addEventListener("change", updatePointerLockAvailability);
+
+    return () =>
+      query.removeEventListener("change", updatePointerLockAvailability);
+  }, []);
+
+  useEffect(() => {
     const body = bodyRef.current;
 
     if (!body) {
       return;
+    }
+
+    if (!hasReportedReady.current) {
+      body.setTranslation(
+        {
+          x: playerSpawnPosition[0],
+          y: playerSpawnPosition[1],
+          z: playerSpawnPosition[2],
+        },
+        true,
+      );
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      hasReportedReady.current = true;
+      setPlayerReady();
     }
 
     body.setTranslation(
@@ -63,7 +93,7 @@ export function FirstPersonController() {
     );
     body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     hasAlignedCamera.current = false;
-  }, [resetCounter]);
+  }, [resetCounter, setPlayerReady]);
 
   useFrame((_, delta) => {
     const frameDelta = Math.min(delta, 0.05);
@@ -209,11 +239,13 @@ export function FirstPersonController() {
       >
         <CapsuleCollider args={[PLAYER_HALF_HEIGHT, PLAYER_RADIUS]} />
       </RigidBody>
-      <PointerLockControls
-        onLock={() => setPointerLocked(true)}
-        onUnlock={() => setPointerLocked(false)}
-        pointerSpeed={mouseSensitivity}
-      />
+      {canUsePointerLock ? (
+        <PointerLockControls
+          onLock={() => setPointerLocked(true)}
+          onUnlock={() => setPointerLocked(false)}
+          pointerSpeed={mouseSensitivity}
+        />
+      ) : null}
     </>
   );
 }

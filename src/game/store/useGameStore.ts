@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import {
+  initialLoading,
+  initialMainRooms,
   initialMobileInput,
   initialObjective,
   initialProgression,
@@ -12,6 +14,9 @@ import type {
   InteractionState,
   InventoryItem,
   InventoryItemId,
+  LoadingState,
+  MainRoomId,
+  MainRoomsState,
   MobileInputState,
   Objective,
   PlayerRuntimeState,
@@ -21,6 +26,12 @@ import type {
 } from "./gameStoreTypes";
 
 type GameActions = {
+  hydrateSettings: () => void;
+  setRendererReady: () => void;
+  setAssetsReady: (assetErrors?: number) => void;
+  setLoadingError: (fatalError: string) => void;
+  setWorldReady: () => void;
+  setPlayerReady: () => void;
   startGame: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
@@ -36,6 +47,9 @@ type GameActions = {
   setMobileSprint: (sprint: boolean) => void;
   resetMobileInput: () => void;
   updateSettings: (settings: Partial<SettingsState>) => void;
+  setRoomLocked: (roomId: MainRoomId, locked: boolean) => void;
+  setRoomDoorOpen: (roomId: MainRoomId, doorOpen: boolean) => void;
+  toggleRoomDoor: (roomId: MainRoomId) => void;
   addInventoryItem: (item: InventoryItem) => void;
   hasInventoryItem: (id: InventoryItemId) => boolean;
   collectMainKey: () => void;
@@ -77,6 +91,8 @@ type GameStore = {
   objective: Objective;
   documentContent: string | null;
   inventory: InventoryItem[];
+  loading: LoadingState;
+  mainRooms: MainRoomsState;
   settings: SettingsState;
   mobileInput: MobileInputState;
   progression: ProgressionState;
@@ -169,16 +185,76 @@ function addUniqueInventoryItem(
   return [...inventory, item];
 }
 
+function isLoadingComplete(loading: LoadingState) {
+  return (
+    loading.assetsReady &&
+    loading.playerReady &&
+    loading.rendererReady &&
+    loading.settingsHydrated &&
+    loading.worldReady
+  );
+}
+
+function getStatusAfterLoading(
+  gameStatus: GameStatus,
+  loading: LoadingState,
+) {
+  return gameStatus === "loading" && isLoadingComplete(loading)
+    ? "mainMenu"
+    : gameStatus;
+}
+
+function updateLoadingState(
+  state: GameStore,
+  loading: LoadingState,
+): Partial<GameStore> {
+  return {
+    gameStatus: getStatusAfterLoading(state.gameStatus, loading),
+    lastGameStatus:
+      state.lastGameStatus === "loading" && isLoadingComplete(loading)
+        ? "mainMenu"
+        : state.lastGameStatus,
+    loading,
+  };
+}
+
+function createFreshRunState(state: GameStore): Partial<GameStore> {
+  return {
+    gameStatus: "playing",
+    lastGameStatus: "playing",
+    pointerLocked: false,
+    flashlightEnabled: false,
+    flashlightHintVisible: true,
+    objective: initialObjective,
+    documentContent: null,
+    inventory: [],
+    mainRooms: initialMainRooms,
+    mobileInput: initialMobileInput,
+    progression: initialProgression,
+    interaction: { activeInteractionId: null, activeInteractionPrompt: null },
+    studyRoom: initialStudyRoom,
+    player: {
+      controlsSuspended: false,
+      isMoving: false,
+      isSprinting: false,
+      stamina: 100,
+      resetCounter: state.player.resetCounter + 1,
+    },
+  };
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
-  gameStatus: "menu",
-  lastGameStatus: "menu",
+  gameStatus: "loading",
+  lastGameStatus: "loading",
   pointerLocked: false,
   flashlightEnabled: false,
   flashlightHintVisible: true,
   objective: initialObjective,
   documentContent: null,
   inventory: [],
-  settings: loadPersistedSettings(),
+  loading: initialLoading,
+  mainRooms: initialMainRooms,
+  settings: initialSettings,
   mobileInput: initialMobileInput,
   progression: initialProgression,
   player: {
@@ -194,17 +270,107 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   studyRoom: initialStudyRoom,
 
-  startGame: () =>
+  hydrateSettings: () =>
+    set((state) => {
+      if (state.loading.settingsHydrated) {
+        return state;
+      }
+
+      const loading = { ...state.loading, settingsHydrated: true };
+
+      return {
+        ...updateLoadingState(state, loading),
+        settings: loadPersistedSettings(),
+      };
+    }),
+  setRendererReady: () =>
+    set((state) => {
+      if (state.loading.rendererReady) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        rendererReady: true,
+      });
+    }),
+  setAssetsReady: (assetErrors = 0) =>
+    set((state) => {
+      if (
+        state.loading.assetsReady &&
+        state.loading.assetErrors === assetErrors
+      ) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        assetErrors,
+        assetsReady: true,
+      });
+    }),
+  setLoadingError: (fatalError) =>
     set((state) => ({
-      gameStatus: "playing",
-      lastGameStatus: "playing",
-      player: { ...state.player, controlsSuspended: false },
+      loading: {
+        ...state.loading,
+        fatalError,
+      },
+      player: {
+        ...state.player,
+        controlsSuspended: true,
+        isMoving: false,
+        isSprinting: false,
+      },
     })),
+  setWorldReady: () =>
+    set((state) => {
+      if (state.loading.worldReady) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        worldReady: true,
+      });
+    }),
+  setPlayerReady: () =>
+    set((state) => {
+      if (state.loading.playerReady) {
+        return state;
+      }
+
+      return updateLoadingState(state, {
+        ...state.loading,
+        playerReady: true,
+      });
+    }),
+  startGame: () =>
+    set((state) => {
+      if (state.gameStatus === "mainMenu") {
+        return createFreshRunState(state);
+      }
+
+      if (state.gameStatus === "paused") {
+        return {
+          gameStatus: "playing",
+          lastGameStatus: "playing",
+          player: { ...state.player, controlsSuspended: false },
+        };
+      }
+
+      return state;
+    }),
   pauseGame: () =>
-    set((state) =>
-      state.gameStatus !== "playing"
-        ? state
-        : {
+    set((state) => {
+      if (state.gameStatus !== "playing") {
+        return state;
+      }
+
+      if (typeof document !== "undefined" && document.pointerLockElement) {
+        document.exitPointerLock?.();
+      }
+
+      return {
             gameStatus: "paused",
             lastGameStatus: "playing",
             pointerLocked: false,
@@ -215,35 +381,49 @@ export const useGameStore = create<GameStore>((set, get) => ({
               isMoving: false,
               isSprinting: false,
             },
+          };
+    }),
+  resumeGame: () =>
+    set((state) =>
+      state.gameStatus !== "paused"
+        ? state
+        : {
+            gameStatus: "playing",
+            lastGameStatus: "playing",
+            player: { ...state.player, controlsSuspended: false },
           },
     ),
-  resumeGame: () =>
-    set((state) => ({
-      gameStatus: "playing",
-      lastGameStatus: "playing",
-      player: { ...state.player, controlsSuspended: false },
-    })),
   openSettings: () =>
-    set((state) => ({
-      gameStatus: "settings",
-      lastGameStatus: state.gameStatus === "settings" ? state.lastGameStatus : state.gameStatus,
-      pointerLocked: false,
-      mobileInput: initialMobileInput,
-      player: {
-        ...state.player,
-        controlsSuspended: true,
-        isMoving: false,
-        isSprinting: false,
-      },
-    })),
+    set((state) => {
+      if (typeof document !== "undefined" && document.pointerLockElement) {
+        document.exitPointerLock?.();
+      }
+
+      return {
+        gameStatus: "settings",
+        lastGameStatus:
+          state.gameStatus === "settings" ? state.lastGameStatus : state.gameStatus,
+        pointerLocked: false,
+        mobileInput: initialMobileInput,
+        player: {
+          ...state.player,
+          controlsSuspended: true,
+          isMoving: false,
+          isSprinting: false,
+        },
+      };
+    }),
   closeSettings: () =>
     set((state) => {
       const nextStatus =
         state.lastGameStatus === "playing" ||
         state.lastGameStatus === "paused" ||
-        state.lastGameStatus === "victory"
+        state.lastGameStatus === "victory" ||
+        state.lastGameStatus === "mainMenu"
           ? state.lastGameStatus
-          : "menu";
+          : isLoadingComplete(state.loading)
+            ? "mainMenu"
+            : "loading";
 
       return {
         gameStatus: nextStatus,
@@ -330,6 +510,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
       persistSettings(nextSettings);
 
       return { settings: nextSettings };
+    }),
+  setRoomLocked: (roomId, locked) =>
+    set((state) => ({
+      mainRooms: {
+        ...state.mainRooms,
+        [roomId]: {
+          ...state.mainRooms[roomId],
+          locked,
+          doorOpen: locked ? false : state.mainRooms[roomId].doorOpen,
+        },
+      },
+    })),
+  setRoomDoorOpen: (roomId, doorOpen) =>
+    set((state) => {
+      const room = state.mainRooms[roomId];
+
+      if (room.locked) {
+        return state;
+      }
+
+      return {
+        mainRooms: {
+          ...state.mainRooms,
+          [roomId]: { ...room, doorOpen },
+        },
+      };
+    }),
+  toggleRoomDoor: (roomId) =>
+    set((state) => {
+      const room = state.mainRooms[roomId];
+
+      if (room.locked) {
+        return state;
+      }
+
+      return {
+        mainRooms: {
+          ...state.mainRooms,
+          [roomId]: { ...room, doorOpen: !room.doorOpen },
+        },
+      };
     }),
   addInventoryItem: (item) =>
     set((state) => ({
@@ -490,25 +711,5 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
     }),
   restartGame: () =>
-    set((state) => ({
-      gameStatus: "playing",
-      lastGameStatus: "playing",
-      pointerLocked: false,
-      flashlightEnabled: false,
-      flashlightHintVisible: true,
-      objective: initialObjective,
-      documentContent: null,
-      inventory: [],
-      mobileInput: initialMobileInput,
-      progression: initialProgression,
-      interaction: { activeInteractionId: null, activeInteractionPrompt: null },
-      studyRoom: initialStudyRoom,
-      player: {
-        controlsSuspended: false,
-        isMoving: false,
-        isSprinting: false,
-        stamina: 100,
-        resetCounter: state.player.resetCounter + 1,
-      },
-    })),
+    set((state) => createFreshRunState(state)),
 }));

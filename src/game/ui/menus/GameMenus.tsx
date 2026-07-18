@@ -1,19 +1,69 @@
 "use client";
 
 import { useGameStore } from "../../store/useGameStore";
-import { activateGameView } from "../browserControls";
+import { prepareGameViewFromUserAction } from "../browserControls";
 import { MenuButton } from "./MenuButton";
 import { SettingsMenu } from "./SettingsMenu";
 
 export function GameMenus() {
   const gameStatus = useGameStore((state) => state.gameStatus);
+  const loading = useGameStore((state) => state.loading);
   const startGame = useGameStore((state) => state.startGame);
   const resumeGame = useGameStore((state) => state.resumeGame);
   const restartGame = useGameStore((state) => state.restartGame);
   const openSettings = useGameStore((state) => state.openSettings);
+  const enterGame = (action: () => void) => {
+    action();
+    prepareGameViewFromUserAction();
+  };
 
   if (gameStatus === "settings") {
     return <SettingsMenu />;
+  }
+
+  if (gameStatus === "loading") {
+    return (
+      <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-black p-5 text-center">
+        <section className="w-full max-w-md border border-zinc-100/15 bg-zinc-950/88 p-5 shadow-2xl">
+          <div className="text-xs uppercase tracking-[0.24em] text-amber-200/80">
+            Vale House
+          </div>
+          <h1 className="mt-3 text-3xl font-semibold text-zinc-100">
+            {loading.fatalError ? "Unable to start" : "Loading"}
+          </h1>
+          {loading.fatalError ? (
+            <p className="mt-4 text-sm leading-6 text-red-100">
+              {loading.fatalError}
+            </p>
+          ) : (
+            <div className="mt-6 h-2 overflow-hidden border border-zinc-100/15 bg-zinc-900">
+              <div
+                className="h-full bg-amber-200 transition-[width] duration-300"
+                style={{
+                  width: `${
+                    ([
+                      loading.assetsReady,
+                      loading.playerReady,
+                      loading.rendererReady,
+                      loading.settingsHydrated,
+                      loading.worldReady,
+                    ].filter(Boolean).length /
+                      5) *
+                    100
+                  }%`,
+                }}
+              />
+            </div>
+          )}
+          {!loading.fatalError && loading.assetErrors > 0 ? (
+            <p className="mt-4 text-sm leading-6 text-zinc-400">
+              Some optional assets failed to load. The chapter will continue
+              with available resources.
+            </p>
+          ) : null}
+        </section>
+      </div>
+    );
   }
 
   if (gameStatus === "playing") {
@@ -36,10 +86,7 @@ export function GameMenus() {
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             <MenuButton
-              onClick={() => {
-                restartGame();
-                activateGameView();
-              }}
+              onClick={() => enterGame(restartGame)}
               variant="primary"
             >
               Restart chapter
@@ -63,20 +110,14 @@ export function GameMenus() {
           </h2>
           <div className="mt-6 space-y-3">
             <MenuButton
-              onClick={() => {
-                resumeGame();
-                activateGameView();
-              }}
+              onClick={() => enterGame(resumeGame)}
               variant="primary"
             >
               Resume
             </MenuButton>
             <MenuButton onClick={openSettings}>Settings</MenuButton>
             <MenuButton
-              onClick={() => {
-                restartGame();
-                activateGameView();
-              }}
+              onClick={() => enterGame(restartGame)}
               variant="danger"
             >
               Restart chapter
@@ -102,10 +143,7 @@ export function GameMenus() {
         </p>
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <MenuButton
-            onClick={() => {
-              startGame();
-              activateGameView();
-            }}
+            onClick={() => enterGame(startGame)}
             variant="primary"
           >
             Start chapter

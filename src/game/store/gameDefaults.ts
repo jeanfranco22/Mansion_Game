@@ -1,4 +1,6 @@
 import type {
+  LoadingState,
+  MainRoomsState,
   MobileInputState,
   Objective,
   ProgressionState,
@@ -30,6 +32,16 @@ export const initialProgression: ProgressionState = {
   gameCompleted: false,
 };
 
+export const initialMainRooms: MainRoomsState = {
+  room1: { id: "room1", locked: false, doorOpen: false },
+  room2: { id: "room2", locked: true, doorOpen: false },
+  room3: { id: "room3", locked: true, doorOpen: false },
+  room4: { id: "room4", locked: true, doorOpen: false },
+  room5: { id: "room5", locked: true, doorOpen: false },
+  room6: { id: "room6", locked: true, doorOpen: false },
+  room7: { id: "room7", locked: true, doorOpen: false },
+};
+
 export const initialStudyRoom: StudyRoomState = {
   studyDoorClosed: true,
   studyDoorInteractionDisabled: false,
@@ -38,11 +50,21 @@ export const initialStudyRoom: StudyRoomState = {
 
 export const initialSettings: SettingsState = {
   fullscreen: false,
-  graphicsQuality: "high",
+  graphicsQuality: "medium",
   mouseSensitivity: 1,
   masterVolume: 0.85,
   musicVolume: 0.35,
   sfxVolume: 0.85,
+};
+
+export const initialLoading: LoadingState = {
+  assetErrors: 0,
+  assetsReady: false,
+  fatalError: null,
+  playerReady: false,
+  rendererReady: false,
+  settingsHydrated: false,
+  worldReady: false,
 };
 
 export const initialMobileInput: MobileInputState = {

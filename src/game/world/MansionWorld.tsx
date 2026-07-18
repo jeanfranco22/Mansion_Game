@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Bookshelf } from "../objects/Bookshelf";
 import { Cabinet } from "../objects/Cabinet";
 import { CollectibleItem } from "../objects/CollectibleItem";
@@ -38,6 +39,7 @@ import { useGameStore } from "../store/useGameStore";
 import { Corridor } from "./Corridor";
 import { DoorFrame } from "./DoorFrame";
 import { FlickeringLight } from "./FlickeringLight";
+import { MainRoomWing } from "./MainRoomWing";
 import { Room } from "./Room";
 import { StaticBox } from "./StaticBox";
 import { Wall } from "./Wall";
@@ -51,12 +53,17 @@ function WallColumn({ position }: { position: [number, number, number] }) {
 }
 
 export function MansionWorld() {
+  const setWorldReady = useGameStore((state) => state.setWorldReady);
   const studyLightIntensity = useGameStore(
     (state) => state.studyRoom.studyLightIntensity,
   );
   const electricityRestored = useGameStore(
     (state) => state.progression.electricityRestored,
   );
+
+  useEffect(() => {
+    setWorldReady();
+  }, [setWorldReady]);
 
   return (
     <>
@@ -74,7 +81,8 @@ export function MansionWorld() {
       <Corridor center={[0, -8]} length={12} walls={false} width={2.3} />
 
       <Wall position={[-4, wallHeight / 2, 2]} scale={[wallThickness, wallHeight, 8]} />
-      <Wall position={[4, wallHeight / 2, 2]} scale={[wallThickness, wallHeight, 8]} />
+      <Wall position={[4, wallHeight / 2, -0.68]} scale={[wallThickness, wallHeight, 2.64]} />
+      <Wall position={[4, wallHeight / 2, 4.68]} scale={[wallThickness, wallHeight, 2.64]} />
       <Wall position={[0, wallHeight / 2, 6]} scale={[8, wallHeight, wallThickness]} />
       <Wall position={[-2.58, wallHeight / 2, -2]} scale={[2.85, wallHeight, wallThickness]} />
       <Wall position={[2.58, wallHeight / 2, -2]} scale={[2.85, wallHeight, wallThickness]} />
@@ -109,6 +117,8 @@ export function MansionWorld() {
       <DoorFrame position={[0, 0, -11.45]} />
       <DoorFrame position={[0, 0, -14.5]} />
       <DoorFrame position={[0, 0, -19.5]} />
+
+      <MainRoomWing />
 
       <WallColumn position={[-3.85, 1.3, -1.6]} />
       <WallColumn position={[3.85, 1.3, -1.6]} />
