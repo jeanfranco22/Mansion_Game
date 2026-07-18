@@ -34,7 +34,9 @@ class CanvasErrorBoundary extends Component<
   componentDidCatch(error: Error) {
     useGameStore
       .getState()
-      .setLoadingError(error.message || "Unable to initialize the 3D renderer.");
+      .setLoadingError(
+        error.message || "No se pudo inicializar el renderizador 3D.",
+      );
   }
 
   render() {

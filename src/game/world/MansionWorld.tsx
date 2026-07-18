@@ -27,7 +27,6 @@ import {
   StorageDoor,
   ValveWheel,
 } from "../objects/PuzzleObjects";
-import { ReadableNote } from "../objects/ReadableNote";
 import { SimpleChair } from "../objects/SimpleChair";
 import { SimpleTable } from "../objects/SimpleTable";
 import { StudyDoor } from "../objects/StudyDoor";
@@ -35,6 +34,12 @@ import { FinalRoomTrigger } from "../triggers/FinalRoomTrigger";
 import { LightFlickerTrigger } from "../triggers/LightFlickerTrigger";
 import { DoorCloseTrigger } from "../triggers/DoorCloseTrigger";
 import { StudyRoomEventController } from "../scripted-events/StudyRoomEventController";
+import {
+  CHAPTER_ONE_KEY,
+  CHAPTER_ONE_NOTES,
+  STORY_NOTE_ORDER,
+} from "../story/story";
+import { StoryNoteObject } from "../story/StoryNoteObject";
 import { useGameStore } from "../store/useGameStore";
 import { Corridor } from "./Corridor";
 import { DoorFrame } from "./DoorFrame";
@@ -60,6 +65,15 @@ export function MansionWorld() {
   const electricityRestored = useGameStore(
     (state) => state.progression.electricityRestored,
   );
+  const storyNotesRead = useGameStore(
+    (state) => state.progression.storyNotesRead,
+  );
+  const visibleStoryNotes = CHAPTER_ONE_NOTES.filter((note) => {
+    const noteIndex = STORY_NOTE_ORDER.indexOf(note.id);
+
+    return noteIndex === 0 || storyNotesRead[STORY_NOTE_ORDER[noteIndex - 1]];
+  });
+  const roomOneKeyAvailable = storyNotesRead.note3;
 
   useEffect(() => {
     setWorldReady();
@@ -165,11 +179,14 @@ export function MansionWorld() {
       <HiddenWallSwitch id="storage-latch-switch" mode="storage" position={[-3.88, 1.08, 0.2]} rotationY={Math.PI / 2} />
       <HiddenWallSwitch id="study-unlock-switch" mode="study" position={[1.05, 1.1, -4.25]} rotationY={-Math.PI / 2} />
       <StorageDoor />
-      <MainKey position={[-5.75, 1.26, -7.85]} />
+      <MainKey
+        available={roomOneKeyAvailable}
+        position={CHAPTER_ONE_KEY.position}
+      />
       <CollectibleItem
         color="#8f9b9f"
         id="screwdriver"
-        item={{ id: "screwdriver", label: "Screwdriver" }}
+        item={{ id: "screwdriver", label: "Destornillador" }}
         position={[-4.7, 0.74, -5.1]}
         rotationY={0.6}
         shape="cylinder"
@@ -177,49 +194,28 @@ export function MansionWorld() {
       <CollectibleItem
         color="#7b8795"
         id="replacement-fuse"
-        item={{ id: "fuse", label: "Replacement Fuse" }}
+        item={{ id: "fuse", label: "Fusible de repuesto" }}
         position={[-5.95, 1.2, -6.45]}
         shape="cylinder"
       />
       <CollectibleItem
         color="#2f343b"
         id="flashlight-batteries"
-        item={{ id: "batteries", label: "Batteries" }}
+        item={{ id: "batteries", label: "Baterías" }}
         position={[-5.2, 0.72, -7.35]}
         shape="box"
       />
       <CollectibleItem
         color="#4d5156"
         id="crowbar"
-        item={{ id: "crowbar", label: "Crowbar" }}
+        item={{ id: "crowbar", label: "Palanca" }}
         position={[-4.25, 0.3, -7.65]}
         rotationY={0.4}
         shape="cylinder"
       />
-      <ReadableNote
-        content={"Letter from E. Vale\n\nIf the house goes dark again, the spare fuse is in storage. The electrical panel is mounted near the west pipes. Do not touch it without the small screwdriver."}
-        id="entrance-letter"
-        position={[-0.8, 0.86, 4.35]}
-        rotationY={-0.1}
-      />
-      <ReadableNote
-        content={"Maintenance Memo\n\nThe master study switch is hidden in the corridor trim. Lord Vale insisted the servants should never enter without permission."}
-        id="maintenance-memo"
-        position={[-5.2, 0.72, -4.55]}
-        rotationY={0.2}
-      />
-      <ReadableNote
-        content={"Archivist's Reminder\n\nThe safe code is filed under the family motto: Raven before Sun, Sun before Crown. Ignore the ash-bound volume."}
-        id="book-clue-note"
-        position={[4.1, 0.86, -8.2]}
-        rotationY={0.1}
-      />
-      <ReadableNote
-        content={"Architect Report 1847\n\nThe lower escape lock is mechanical, not ceremonial. Steam pressure, a loaded floor plate, then the release lever. The final door only opens when all three agree."}
-        id="architect-report-note"
-        position={[2.62, 0.78, -9.74]}
-        rotationY={-0.05}
-      />
+      {visibleStoryNotes.map((note) => (
+        <StoryNoteObject key={note.id} note={note} />
+      ))}
       <FuseBox />
       <BookOrderPuzzle />
       <OfficeSafe />

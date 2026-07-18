@@ -3,30 +3,38 @@
 import { useMemo } from "react";
 import { playGameSound } from "../audio/gameAudio";
 import { useRegisterInteraction } from "../interactions/useRegisterInteraction";
+import { CHAPTER_ONE_KEY } from "../story/story";
 import { useGameStore } from "../store/useGameStore";
 
 type MainKeyProps = {
+  available?: boolean;
   position: [number, number, number];
 };
 
-export function MainKey({ position }: MainKeyProps) {
-  const hasMainKey = useGameStore((state) => state.progression.hasMainKey);
-  const collectMainKey = useGameStore((state) => state.collectMainKey);
+export function MainKey({ available = true, position }: MainKeyProps) {
+  const hasRoomOneKey = useGameStore((state) =>
+    state.inventory.some((item) => item.id === CHAPTER_ONE_KEY.id),
+  );
+  const collectRoomOneKey = useGameStore((state) => state.collectRoomOneKey);
   const config = useMemo(
     () => ({
-      enabled: () => !useGameStore.getState().progression.hasMainKey,
+      enabled: () =>
+        available &&
+        !useGameStore
+          .getState()
+          .inventory.some((item) => item.id === CHAPTER_ONE_KEY.id),
       onInteract: () => {
-        collectMainKey();
+        collectRoomOneKey();
         playGameSound("keyPickup", 0.55);
       },
-      prompt: "Press E to pick up the key",
+      prompt: CHAPTER_ONE_KEY.prompt,
     }),
-    [collectMainKey],
+    [available, collectRoomOneKey],
   );
 
   useRegisterInteraction("main-key", config);
 
-  if (hasMainKey) {
+  if (!available || hasRoomOneKey) {
     return null;
   }
 

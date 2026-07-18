@@ -11,7 +11,7 @@ export function ObjectivePanel() {
       key={objective}
     >
       <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">
-        Objective
+        Objetivo
       </div>
       <div className="mt-1 text-balance text-zinc-100">{objective}</div>
     </div>

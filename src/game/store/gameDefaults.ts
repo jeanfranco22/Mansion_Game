@@ -8,10 +8,11 @@ import type {
   StudyRoomState,
 } from "./gameStoreTypes";
 
-export const initialObjective: Objective = "Find the corridor key";
+export const initialObjective: Objective = "Explora la mansión.";
 
 export const initialProgression: ProgressionState = {
   hasMainKey: false,
+  storyNotesRead: {},
   corridorDoorOpened: false,
   studyDoorUnlocked: false,
   storageLatchReleased: false,
@@ -33,7 +34,7 @@ export const initialProgression: ProgressionState = {
 };
 
 export const initialMainRooms: MainRoomsState = {
-  room1: { id: "room1", locked: false, doorOpen: false },
+  room1: { id: "room1", locked: true, doorOpen: false },
   room2: { id: "room2", locked: true, doorOpen: false },
   room3: { id: "room3", locked: true, doorOpen: false },
   room4: { id: "room4", locked: true, doorOpen: false },
@@ -75,4 +76,4 @@ export const initialMobileInput: MobileInputState = {
   sprint: false,
 };
 
-export const playerSpawnPosition: [number, number, number] = [0, 0.95, 3];
+export const playerSpawnPosition: [number, number, number] = [0, 1.05, 3];
