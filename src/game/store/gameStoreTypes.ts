@@ -25,6 +25,50 @@ export type InventoryItem = {
   label: string;
 };
 
+export type MainRoomId =
+  | "room1"
+  | "room2"
+  | "room3"
+  | "room4"
+  | "room5"
+  | "room6"
+  | "room7";
+
+export type MainRoomState = {
+  id: MainRoomId;
+  locked: boolean;
+  doorOpen: boolean;
+};
+
+export type MainRoomsState = Record<MainRoomId, MainRoomState>;
+
+export type GameStatus =
+  | "loading"
+  | "mainMenu"
+  | "playing"
+  | "paused"
+  | "settings"
+  | "victory";
+
+export type GraphicsQuality = "low" | "medium" | "high";
+
+export type SettingsState = {
+  mouseSensitivity: number;
+  masterVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  graphicsQuality: GraphicsQuality;
+  fullscreen: boolean;
+};
+
+export type MobileInputState = {
+  moveX: number;
+  moveY: number;
+  lookX: number;
+  lookY: number;
+  sprint: boolean;
+};
+
 export type ProgressionState = {
   hasMainKey: boolean;
   corridorDoorOpened: boolean;
@@ -45,6 +89,16 @@ export type ProgressionState = {
   studyEventCompleted: boolean;
   finalRoomReached: boolean;
   gameCompleted: boolean;
+};
+
+export type LoadingState = {
+  assetErrors: number;
+  assetsReady: boolean;
+  fatalError: string | null;
+  playerReady: boolean;
+  rendererReady: boolean;
+  settingsHydrated: boolean;
+  worldReady: boolean;
 };
 
 export type PlayerRuntimeState = {

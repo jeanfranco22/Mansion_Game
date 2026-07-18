@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Bookshelf } from "../objects/Bookshelf";
 import { Cabinet } from "../objects/Cabinet";
 import { CollectibleItem } from "../objects/CollectibleItem";
@@ -37,6 +38,8 @@ import { StudyRoomEventController } from "../scripted-events/StudyRoomEventContr
 import { useGameStore } from "../store/useGameStore";
 import { Corridor } from "./Corridor";
 import { DoorFrame } from "./DoorFrame";
+import { FlickeringLight } from "./FlickeringLight";
+import { MainRoomWing } from "./MainRoomWing";
 import { Room } from "./Room";
 import { StaticBox } from "./StaticBox";
 import { Wall } from "./Wall";
@@ -50,6 +53,7 @@ function WallColumn({ position }: { position: [number, number, number] }) {
 }
 
 export function MansionWorld() {
+  const setWorldReady = useGameStore((state) => state.setWorldReady);
   const studyLightIntensity = useGameStore(
     (state) => state.studyRoom.studyLightIntensity,
   );
@@ -57,12 +61,16 @@ export function MansionWorld() {
     (state) => state.progression.electricityRestored,
   );
 
+  useEffect(() => {
+    setWorldReady();
+  }, [setWorldReady]);
+
   return (
     <>
       <ambientLight intensity={electricityRestored ? 0.12 : 0.055} />
-      <pointLight color="#d9a85f" intensity={electricityRestored ? 55 : 36} position={[0, 2.6, 2]} />
-      <pointLight color="#6f8fb8" intensity={electricityRestored ? 30 : 12} position={[0, 2.25, -6.5]} />
-      <pointLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 88 : 48)} position={[4.2, 2.5, -8.2]} />
+      <FlickeringLight color="#d9a85f" intensity={electricityRestored ? 55 : 36} position={[0, 2.6, 2]} speed={1.4} />
+      <FlickeringLight color="#6f8fb8" intensity={electricityRestored ? 30 : 12} position={[0, 2.25, -6.5]} speed={2.1} />
+      <FlickeringLight color="#d1b078" intensity={studyLightIntensity * (electricityRestored ? 88 : 48)} position={[4.2, 2.5, -8.2]} speed={1.8} />
       <pointLight color="#8fd0ff" intensity={electricityRestored ? 34 : 0} position={[-5.8, 2.25, -5.8]} />
       <pointLight color="#97a7c9" intensity={electricityRestored ? 28 : 12} position={[0, 2.3, -17]} />
 
@@ -73,7 +81,8 @@ export function MansionWorld() {
       <Corridor center={[0, -8]} length={12} walls={false} width={2.3} />
 
       <Wall position={[-4, wallHeight / 2, 2]} scale={[wallThickness, wallHeight, 8]} />
-      <Wall position={[4, wallHeight / 2, 2]} scale={[wallThickness, wallHeight, 8]} />
+      <Wall position={[4, wallHeight / 2, -0.68]} scale={[wallThickness, wallHeight, 2.64]} />
+      <Wall position={[4, wallHeight / 2, 4.68]} scale={[wallThickness, wallHeight, 2.64]} />
       <Wall position={[0, wallHeight / 2, 6]} scale={[8, wallHeight, wallThickness]} />
       <Wall position={[-2.58, wallHeight / 2, -2]} scale={[2.85, wallHeight, wallThickness]} />
       <Wall position={[2.58, wallHeight / 2, -2]} scale={[2.85, wallHeight, wallThickness]} />
@@ -108,6 +117,8 @@ export function MansionWorld() {
       <DoorFrame position={[0, 0, -11.45]} />
       <DoorFrame position={[0, 0, -14.5]} />
       <DoorFrame position={[0, 0, -19.5]} />
+
+      <MainRoomWing />
 
       <WallColumn position={[-3.85, 1.3, -1.6]} />
       <WallColumn position={[3.85, 1.3, -1.6]} />
