@@ -4,7 +4,7 @@
 
 ### Nombre del proyecto
 
-El proyecto se llama internamente `year` en `package.json`, pero el juego se presenta al jugador como **Vale House**. La metadata de Next usa el título **Project Mansion**.
+El proyecto se llama internamente `year` en `package.json`, pero el juego se presenta al jugador como **C & J House**. La metadata de Next usa el título **C & J House**.
 
 ### Genero
 
@@ -714,7 +714,7 @@ No hay sistema formal de cinematicas. La cinimatica actual es `runStudyRoomEvent
 
 ## 8. Flujo del jugador
 
-1. El jugador abre la app y ve el menu de **Vale House**.
+1. El jugador abre la app y ve el menu de **C & J House**.
 2. Puede abrir **Settings** para ajustar sensibilidad, volumenes, calidad grafica y fullscreen.
 3. Pulsa **Start chapter**.
 4. El juego cambia a `playing`, intenta pointer lock en desktop y muestra HUD.
@@ -933,7 +933,7 @@ No hay archivos de escena externos.
 
 ## 13. Resumen para IA
 
-Este proyecto es un prototipo web de juego 3D llamado **Vale House**, en el repo `year/`. Usa Next.js 16, React 19, TypeScript, React Three Fiber, Drei, Rapier y Zustand. La entrada es `app/page.tsx`, que renderiza `src/game/Game.tsx`; este delega a `src/game/components/GameCanvas.tsx`. `GameCanvas` crea el `Canvas`, configura calidad grafica, fog, fisica, mundo, jugador, linterna, audio, interacciones y HUD. No hay Unity ni archivos de escena externos.
+Este proyecto es un prototipo web de juego 3D llamado **C & J House**, en el repo `year/`. Usa Next.js 16, React 19, TypeScript, React Three Fiber, Drei, Rapier y Zustand. La entrada es `app/page.tsx`, que renderiza `src/game/Game.tsx`; este delega a `src/game/components/GameCanvas.tsx`. `GameCanvas` crea el `Canvas`, configura calidad grafica, fog, fisica, mundo, jugador, linterna, audio, interacciones y HUD. No hay Unity ni archivos de escena externos.
 
 El estado central esta en `src/game/store/useGameStore.ts`. Ahi viven `gameStatus`, `objective`, `inventory`, `settings`, `progression`, `player`, `interaction`, `mobileInput` y `studyRoom`. La progresion se modela con booleans como `hasMainKey`, `corridorDoorOpened`, `studyDoorUnlocked`, `electricityRestored`, `bookPuzzleSolved`, `safeOpened`, `basementDoorOpened`, `valveAligned`, `pressurePlateActive`, `escapeMechanismAligned`, `finalRoomReached` y `gameCompleted`. Las acciones del store cambian objetivos e inventario. Solo los settings persisten en `localStorage`; la partida no se guarda.
 
