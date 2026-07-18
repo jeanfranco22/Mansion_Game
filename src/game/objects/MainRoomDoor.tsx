@@ -2,6 +2,11 @@
 
 import { useCallback } from "react";
 import { playGameSound } from "../audio/gameAudio";
+import {
+  CHAPTER_ONE_KEY,
+  CHAPTER_ONE_OBJECTIVES,
+  CHAPTER_ONE_ROOM,
+} from "../story/story";
 import type { MainRoomId } from "../store/gameStoreTypes";
 import { useGameStore } from "../store/useGameStore";
 import { AnimatedDoor } from "./AnimatedDoor";
@@ -22,9 +27,20 @@ export function MainRoomDoor({
   const room = useGameStore((state) => state.mainRooms[roomId]);
   const toggleRoomDoor = useGameStore((state) => state.toggleRoomDoor);
   const handleInteract = useCallback(() => {
-    const { mainRooms } = useGameStore.getState();
+    const state = useGameStore.getState();
+    const { mainRooms } = state;
 
     if (mainRooms[roomId].locked) {
+      if (
+        roomId === CHAPTER_ONE_ROOM.roomId &&
+        state.hasInventoryItem(CHAPTER_ONE_KEY.id)
+      ) {
+        state.setRoomLocked(roomId, false);
+        useGameStore.getState().setRoomDoorOpen(roomId, true);
+        state.setObjective(CHAPTER_ONE_OBJECTIVES.enterRoomOne);
+        playGameSound("doorOpen", 0.35);
+      }
+
       return;
     }
 
@@ -40,11 +56,24 @@ export function MainRoomDoor({
       onInteract={handleInteract}
       position={position}
       prompt={() => {
-        const { mainRooms } = useGameStore.getState();
+        const state = useGameStore.getState();
+        const { mainRooms } = state;
+
+        if (roomId === CHAPTER_ONE_ROOM.roomId) {
+          if (mainRooms[roomId].locked) {
+            return state.hasInventoryItem(CHAPTER_ONE_KEY.id)
+              ? CHAPTER_ONE_ROOM.openPrompt
+              : CHAPTER_ONE_ROOM.lockedPrompt;
+          }
+
+          return mainRooms[roomId].doorOpen
+            ? CHAPTER_ONE_ROOM.closePrompt
+            : CHAPTER_ONE_ROOM.openPrompt;
+        }
 
         return mainRooms[roomId].locked
           ? lockedRoomPrompt
-          : `Press E to use ${roomId}`;
+          : `Presiona E para usar la Habitación ${roomId.replace("room", "")}`;
       }}
       rotationY={rotationY}
     />

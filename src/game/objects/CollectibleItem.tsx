@@ -46,7 +46,7 @@ export function CollectibleItem({
         addInventoryItem(item);
         playGameSound("keyPickup", 0.38);
       },
-      prompt: prompt ?? `Press E to pick up ${item.label.toLowerCase()}`,
+      prompt: prompt ?? `Presiona E para recoger ${item.label.toLowerCase()}`,
     }),
     [addInventoryItem, item, prompt],
   );

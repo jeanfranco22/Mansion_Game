@@ -46,8 +46,8 @@ export function HiddenWallSwitch({
       },
       prompt:
         mode === "study"
-          ? "Press E to press the loose wall switch"
-          : "Press E to release the storage latch",
+          ? "Presiona E para pulsar el interruptor suelto"
+          : "Presiona E para liberar el pestillo del almacén",
     }),
     [mode],
   );
@@ -98,8 +98,8 @@ export function StorageDoor() {
         }
 
         return progression.storageLatchReleased
-          ? "Press E to pull open the storage door"
-          : "The storage door is latched from the other side.";
+          ? "Presiona E para abrir la puerta del almacén"
+          : "La puerta del almacén está cerrada desde el otro lado.";
       }}
       rotationY={Math.PI / 2}
     />
@@ -138,12 +138,12 @@ export function BasementAccessDoor() {
         }
 
         if (!progression.electricityRestored) {
-          return "The magnetic lock has no power.";
+          return "La cerradura magnética no tiene energía.";
         }
 
         return hasInventoryItem("basementKey")
-          ? "Press E to unlock the basement access"
-          : "The basement access needs a numbered key.";
+          ? "Presiona E para desbloquear el acceso al sótano"
+          : "El acceso al sótano necesita una llave numerada.";
       }}
     />
   );
@@ -177,18 +177,18 @@ export function FuseBox() {
         const state = useGameStore.getState();
 
         if (state.progression.electricityRestored) {
-          return "The electrical panel hums with power.";
+          return "El panel eléctrico vibra con energía.";
         }
 
         if (!state.progression.fuseBoxOpened) {
           return state.hasInventoryItem("screwdriver")
-            ? "Press E to remove the panel screws"
-            : "The panel is screwed shut.";
+            ? "Presiona E para quitar los tornillos del panel"
+            : "El panel está cerrado con tornillos.";
         }
 
         return state.hasInventoryItem("fuse")
-          ? "Press E to install the replacement fuse"
-          : "One fuse slot is empty.";
+          ? "Presiona E para instalar el fusible de repuesto"
+          : "Hay una ranura de fusible vacía.";
       },
     }),
     [],
@@ -244,7 +244,7 @@ function PullableBook({
     () => ({
       enabled: () => !useGameStore.getState().progression.bookPuzzleSolved,
       onInteract: () => {
-        const expected = ["raven", "sun", "crown"];
+        const expected = ["cuervo", "sol", "corona"];
         const nextSequence = [...sequenceRef.current, book.keyName].slice(-3);
         sequenceRef.current = nextSequence;
 
@@ -259,7 +259,7 @@ function PullableBook({
           playGameSound("lightFlicker", 0.18);
         }
       },
-      prompt: `Press E to pull the ${book.keyName} volume`,
+      prompt: `Presiona E para tirar del libro ${book.keyName}`,
     }),
     [book.keyName, sequenceRef],
   );
@@ -288,10 +288,10 @@ export function BookOrderPuzzle() {
   const solved = useGameStore((state) => state.progression.bookPuzzleSolved);
   const sequenceRef = useRef<string[]>([]);
   const books: BookData[] = [
-    { id: "book-raven", keyName: "raven", x: -0.42, color: "#342f4f" },
-    { id: "book-sun", keyName: "sun", x: -0.14, color: "#72612d" },
-    { id: "book-crown", keyName: "crown", x: 0.14, color: "#612d31" },
-    { id: "book-ash", keyName: "ash", x: 0.42, color: "#3e463f" },
+    { id: "book-raven", keyName: "cuervo", x: -0.42, color: "#342f4f" },
+    { id: "book-sun", keyName: "sol", x: -0.14, color: "#72612d" },
+    { id: "book-crown", keyName: "corona", x: 0.14, color: "#612d31" },
+    { id: "book-ash", keyName: "ceniza", x: 0.42, color: "#3e463f" },
   ];
 
   return (
@@ -330,7 +330,7 @@ export function OfficeSafe() {
         state.openSafe();
         state.addInventoryItem({
           id: "architectReport",
-          label: "Architect Report",
+          label: "Reporte del arquitecto",
         });
         playGameSound("doorOpen", 0.4);
       },
@@ -338,12 +338,12 @@ export function OfficeSafe() {
         const { progression } = useGameStore.getState();
 
         if (progression.safeOpened) {
-          return "The safe is open.";
+          return "La caja fuerte está abierta.";
         }
 
         return progression.safeCodeDiscovered
-          ? "Press E to enter 1847 on the safe"
-          : "A four-digit safe. The dial is set to 0000.";
+          ? "Presiona E para introducir 1847 en la caja fuerte"
+          : "Una caja fuerte de cuatro dígitos. El dial marca 0000.";
       },
     }),
     [],
@@ -394,7 +394,7 @@ export function ValveWheel() {
         useGameStore.getState().alignValve();
         playGameSound("doorOpen", 0.25);
       },
-      prompt: "Press E to turn the pressure valve",
+      prompt: "Presiona E para girar la válvula de presión",
     }),
     [],
   );
@@ -483,16 +483,16 @@ export function EscapeLever() {
         const { progression } = useGameStore.getState();
 
         if (progression.escapeMechanismAligned) {
-          return "The exit lock is disengaged.";
+          return "El seguro de la salida está desactivado.";
         }
 
         if (!progression.valveAligned) {
-          return "A pressure gauge sits at zero.";
+          return "El medidor de presión está en cero.";
         }
 
         return progression.pressurePlateActive
-          ? "Press E to pull the escape lever"
-          : "The lever needs weight on the floor plate.";
+          ? "Presiona E para tirar de la palanca de escape"
+          : "La palanca necesita peso sobre la placa del suelo.";
       },
     }),
     [],

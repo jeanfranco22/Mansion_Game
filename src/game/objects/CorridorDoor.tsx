@@ -33,8 +33,8 @@ export function CorridorDoor() {
         }
 
         return progression.hasMainKey
-          ? "Press E to unlock the corridor door"
-          : "The door is locked. Find a key.";
+          ? "Presiona E para desbloquear la puerta del pasillo"
+          : "La puerta está cerrada. Necesitas una llave.";
       }}
     />
   );

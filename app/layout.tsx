@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Project Mansion",
-  description: "A first-person mansion exploration prototype.",
+  title: "Vale House",
+  description: "Un prototipo de exploración en primera persona dentro de una mansión.",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="es" className="h-full antialiased">
       <body className="min-h-full">{children}</body>
     </html>
   );
