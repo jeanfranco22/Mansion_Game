@@ -41,8 +41,8 @@ export function StudyDoor() {
         }
 
         return progression.studyDoorUnlocked
-          ? "Press E to use the study door"
-          : "The study lock is controlled from somewhere nearby.";
+          ? "Presiona E para usar la puerta del estudio"
+          : "La cerradura del estudio se controla desde algún lugar cercano.";
       }}
       rotationY={Math.PI / 2}
     />

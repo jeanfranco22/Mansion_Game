@@ -41,7 +41,7 @@ export function DocumentOverlay({ content }: DocumentOverlayProps) {
           }}
           type="button"
         >
-          Close
+          Cerrar
         </button>
       </div>
     </div>

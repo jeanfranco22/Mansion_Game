@@ -1,18 +1,24 @@
 export type Objective =
-  | "Find the corridor key"
-  | "Find the study"
-  | "Restore electricity"
-  | "Find the safe code"
-  | "Open the office safe"
-  | "Unlock the basement access"
-  | "Align the escape mechanism"
-  | "Unlock the corridor door"
-  | "Investigate the noise in the final room"
-  | "Find a way out"
-  | "You escaped the mansion";
+  | "Explora la mansión."
+  | "Encuentra una pista."
+  | "Sigue las notas."
+  | "Busca la llave."
+  | "Abre la primera habitación."
+  | "Entra a la primera habitación."
+  | "Encuentra el estudio."
+  | "Restaura la electricidad."
+  | "Encuentra el código de la caja fuerte."
+  | "Abre la caja fuerte del despacho."
+  | "Desbloquea el acceso al sótano."
+  | "Alinea el mecanismo de escape."
+  | "Desbloquea la puerta del pasillo."
+  | "Investiga el ruido en la sala final."
+  | "Encuentra una salida."
+  | "Escapaste de la mansión.";
 
 export type InventoryItemId =
   | "corridorKey"
+  | "room1Key"
   | "screwdriver"
   | "fuse"
   | "batteries"
@@ -71,6 +77,7 @@ export type MobileInputState = {
 
 export type ProgressionState = {
   hasMainKey: boolean;
+  storyNotesRead: Partial<Record<string, boolean>>;
   corridorDoorOpened: boolean;
   studyDoorUnlocked: boolean;
   storageLatchReleased: boolean;

@@ -29,7 +29,7 @@ export function GameMenus() {
             Vale House
           </div>
           <h1 className="mt-3 text-3xl font-semibold text-zinc-100">
-            {loading.fatalError ? "Unable to start" : "Loading"}
+            {loading.fatalError ? "No se pudo iniciar" : "Cargando"}
           </h1>
           {loading.fatalError ? (
             <p className="mt-4 text-sm leading-6 text-red-100">
@@ -57,8 +57,8 @@ export function GameMenus() {
           )}
           {!loading.fatalError && loading.assetErrors > 0 ? (
             <p className="mt-4 text-sm leading-6 text-zinc-400">
-              Some optional assets failed to load. The chapter will continue
-              with available resources.
+              Algunos recursos opcionales no se cargaron. El capítulo
+              continuará con los recursos disponibles.
             </p>
           ) : null}
         </section>
@@ -78,20 +78,19 @@ export function GameMenus() {
             Vale House
           </div>
           <h1 className="mt-3 text-4xl font-semibold text-zinc-100">
-            You escaped the mansion
+            Escapaste de la mansión
           </h1>
           <p className="mt-4 text-base leading-7 text-zinc-300">
-            The first section is complete. The house is quiet again, but the
-            lower rooms are still awake.
+            El primer capítulo está completo. La casa vuelve a guardar silencio.
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             <MenuButton
               onClick={() => enterGame(restartGame)}
               variant="primary"
             >
-              Restart chapter
+              Reiniciar capítulo
             </MenuButton>
-            <MenuButton onClick={openSettings}>Settings</MenuButton>
+            <MenuButton onClick={openSettings}>Ajustes</MenuButton>
           </div>
         </section>
       </div>
@@ -103,7 +102,7 @@ export function GameMenus() {
       <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-black/62 p-5 backdrop-blur-sm">
         <section className="w-full max-w-md border border-zinc-100/15 bg-zinc-950/88 p-5 shadow-2xl">
           <div className="text-xs uppercase tracking-[0.22em] text-amber-200/80">
-            Paused
+            Pausa
           </div>
           <h2 className="mt-2 text-3xl font-semibold text-zinc-100">
             Vale House
@@ -113,14 +112,14 @@ export function GameMenus() {
               onClick={() => enterGame(resumeGame)}
               variant="primary"
             >
-              Resume
+              Continuar
             </MenuButton>
-            <MenuButton onClick={openSettings}>Settings</MenuButton>
+            <MenuButton onClick={openSettings}>Ajustes</MenuButton>
             <MenuButton
               onClick={() => enterGame(restartGame)}
               variant="danger"
             >
-              Restart chapter
+              Reiniciar capítulo
             </MenuButton>
           </div>
         </section>
@@ -132,23 +131,23 @@ export function GameMenus() {
     <div className="pointer-events-auto absolute inset-0 flex items-center bg-black/35 p-5 backdrop-blur-[1px]">
       <section className="ml-0 w-full max-w-xl border border-zinc-100/15 bg-zinc-950/78 p-6 shadow-2xl md:ml-12">
         <div className="text-xs uppercase tracking-[0.24em] text-amber-200/80">
-          Escape Room Chapter One
+          Primer capítulo
         </div>
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
           Vale House
         </h1>
         <p className="mt-4 max-w-lg text-base leading-7 text-zinc-300">
-          Explore the mansion, restore power, solve the house mechanisms, and
-          escape the first wing.
+          Explora la mansión, sigue las notas y encuentra la llave de la
+          primera habitación.
         </p>
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <MenuButton
             onClick={() => enterGame(startGame)}
             variant="primary"
           >
-            Start chapter
+            Iniciar capítulo
           </MenuButton>
-          <MenuButton onClick={openSettings}>Settings</MenuButton>
+          <MenuButton onClick={openSettings}>Ajustes</MenuButton>
         </div>
       </section>
     </div>

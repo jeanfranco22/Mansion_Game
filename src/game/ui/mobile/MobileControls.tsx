@@ -119,31 +119,31 @@ export function MobileControls() {
     <div className="pointer-events-none absolute inset-0 z-20 select-none">
       <div className="pointer-events-auto absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]">
         <Joystick
-          label="Move"
+          label="Mover"
           onChange={(x, y) => setMobileMove(x, -y)}
           onRelease={() => setMobileMove(0, 0)}
         />
       </div>
       <div className="pointer-events-auto absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]">
         <Joystick
-          label="Look"
+          label="Mirar"
           onChange={(x, y) => setMobileLook(x, y)}
           onRelease={() => setMobileLook(0, 0)}
         />
       </div>
       <div className="pointer-events-auto absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] flex gap-2">
-        <TouchButton onClick={pauseGame}>Pause</TouchButton>
-        <TouchButton onClick={toggleFlashlight}>Light</TouchButton>
+        <TouchButton onClick={pauseGame}>Pausa</TouchButton>
+        <TouchButton onClick={toggleFlashlight}>Luz</TouchButton>
       </div>
       <div className="pointer-events-auto absolute bottom-[calc(max(1rem,env(safe-area-inset-bottom))+6.75rem)] right-[max(1rem,env(safe-area-inset-right))] flex gap-2 sm:bottom-[calc(max(1rem,env(safe-area-inset-bottom))+8rem)]">
         <TouchButton
           onPointerDown={() => setMobileSprint(true)}
           onPointerUp={() => setMobileSprint(false)}
         >
-          Sprint
+          Correr
         </TouchButton>
         <TouchButton onClick={() => triggerInteraction(activeInteractionId)}>
-          Use
+          Usar
         </TouchButton>
       </div>
       <button
@@ -151,7 +151,7 @@ export function MobileControls() {
         onClick={resetMobileInput}
         type="button"
       >
-        Reset touch
+        Reiniciar toque
       </button>
     </div>
   );

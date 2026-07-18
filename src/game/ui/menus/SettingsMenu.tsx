@@ -59,9 +59,9 @@ function SettingSelect({
         onChange={(event) => onChange(event.target.value as GraphicsQuality)}
         value={value}
       >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
+        <option value="low">Baja</option>
+        <option value="medium">Media</option>
+        <option value="high">Alta</option>
       </select>
     </label>
   );
@@ -98,16 +98,16 @@ export function SettingsMenu() {
       <section className="w-full max-w-xl border border-zinc-100/15 bg-zinc-950/88 p-5 shadow-2xl transition">
         <div className="mb-5">
           <div className="text-xs uppercase tracking-[0.22em] text-amber-200/80">
-            Settings
+            Ajustes
           </div>
           <h2 className="mt-2 text-2xl font-semibold text-zinc-100">
-            Game feel and performance
+            Sensación y rendimiento
           </h2>
         </div>
 
         <div className="space-y-5">
           <SettingRange
-            label="Mouse sensitivity"
+            label="Sensibilidad del mouse"
             max={1.8}
             min={0.45}
             onChange={(mouseSensitivity) => updateSettings({ mouseSensitivity })}
@@ -115,23 +115,23 @@ export function SettingsMenu() {
             value={settings.mouseSensitivity}
           />
           <SettingRange
-            label="Master volume"
+            label="Volumen general"
             onChange={(masterVolume) => updateSettings({ masterVolume })}
             value={settings.masterVolume}
           />
           <SettingRange
-            label="Music volume"
+            label="Música"
             onChange={(musicVolume) => updateSettings({ musicVolume })}
             value={settings.musicVolume}
           />
           <SettingRange
-            label="SFX volume"
+            label="Efectos"
             onChange={(sfxVolume) => updateSettings({ sfxVolume })}
             value={settings.sfxVolume}
           />
 
           <SettingSelect
-            label="Graphics quality"
+            label="Calidad gráfica"
             onChange={(graphicsQuality) => updateSettings({ graphicsQuality })}
             value={settings.graphicsQuality}
           />
@@ -139,10 +139,10 @@ export function SettingsMenu() {
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <MenuButton onClick={() => void handleFullscreenToggle()}>
-            {fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"}
+            {fullscreenActive ? "Salir de pantalla completa" : "Pantalla completa"}
           </MenuButton>
           <MenuButton onClick={closeSettings} variant="primary">
-            Back
+            Volver
           </MenuButton>
         </div>
       </section>

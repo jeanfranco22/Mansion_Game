@@ -36,7 +36,9 @@ export function FinalExitDoor() {
           progression.escapeMechanismAligned &&
           progression.finalRoomReached;
 
-        return canExit ? "Press E to leave" : "The exit lock is still engaged.";
+        return canExit
+          ? "Presiona E para salir"
+          : "El seguro de la salida sigue activado.";
       }}
     />
   );

@@ -8,6 +8,12 @@ import {
   initialSettings,
   initialStudyRoom,
 } from "./gameDefaults";
+import {
+  CHAPTER_ONE_KEY,
+  CHAPTER_ONE_OBJECTIVES,
+  STORY_NOTE_ORDER,
+  type StoryNoteId,
+} from "../story/story";
 import type {
   GraphicsQuality,
   GameStatus,
@@ -50,8 +56,10 @@ type GameActions = {
   setRoomLocked: (roomId: MainRoomId, locked: boolean) => void;
   setRoomDoorOpen: (roomId: MainRoomId, doorOpen: boolean) => void;
   toggleRoomDoor: (roomId: MainRoomId) => void;
+  readStoryNote: (noteId: StoryNoteId) => void;
   addInventoryItem: (item: InventoryItem) => void;
   hasInventoryItem: (id: InventoryItemId) => boolean;
+  collectRoomOneKey: () => void;
   collectMainKey: () => void;
   openCorridorDoor: () => void;
   unlockStudyDoor: () => void;
@@ -241,6 +249,31 @@ function createFreshRunState(state: GameStore): Partial<GameStore> {
       resetCounter: state.player.resetCounter + 1,
     },
   };
+}
+
+function getObjectiveAfterStoryNote(noteId: StoryNoteId): Objective {
+  if (noteId === "note1") {
+    return CHAPTER_ONE_OBJECTIVES.findClue;
+  }
+
+  if (noteId === "note2") {
+    return CHAPTER_ONE_OBJECTIVES.followNotes;
+  }
+
+  return CHAPTER_ONE_OBJECTIVES.findKey;
+}
+
+function isStoryNoteAvailable(
+  noteId: StoryNoteId,
+  notesRead: ProgressionState["storyNotesRead"],
+) {
+  const noteIndex = STORY_NOTE_ORDER.indexOf(noteId);
+
+  if (noteIndex <= 0) {
+    return true;
+  }
+
+  return notesRead[STORY_NOTE_ORDER[noteIndex - 1]];
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -552,29 +585,54 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
       };
     }),
+  readStoryNote: (noteId) =>
+    set((state) => {
+      if (
+        !isStoryNoteAvailable(noteId, state.progression.storyNotesRead) ||
+        state.progression.storyNotesRead[noteId]
+      ) {
+        return state;
+      }
+
+      return {
+        objective: getObjectiveAfterStoryNote(noteId),
+        progression: {
+          ...state.progression,
+          storyNotesRead: {
+            ...state.progression.storyNotesRead,
+            [noteId]: true,
+          },
+        },
+      };
+    }),
   addInventoryItem: (item) =>
     set((state) => ({
       inventory: addUniqueInventoryItem(state.inventory, item),
     })),
   hasInventoryItem: (id) => get().inventory.some((item) => item.id === id),
 
+  collectRoomOneKey: () =>
+    set((state) => ({
+      objective: CHAPTER_ONE_OBJECTIVES.openRoomOne,
+      inventory: addUniqueInventoryItem(state.inventory, CHAPTER_ONE_KEY),
+    })),
   collectMainKey: () =>
     set((state) => ({
-      objective: "Unlock the corridor door",
+      objective: "Desbloquea la puerta del pasillo.",
       inventory: addUniqueInventoryItem(state.inventory, {
         id: "corridorKey",
-        label: "Corridor Key",
+        label: "Llave del pasillo",
       }),
       progression: { ...state.progression, hasMainKey: true },
     })),
   openCorridorDoor: () =>
     set((state) => ({
-      objective: "Find the study",
+      objective: "Encuentra el estudio.",
       progression: { ...state.progression, corridorDoorOpened: true },
     })),
   unlockStudyDoor: () =>
     set((state) => ({
-      objective: "Restore electricity",
+      objective: "Restaura la electricidad.",
       progression: { ...state.progression, studyDoorUnlocked: true },
     })),
   releaseStorageLatch: () =>
@@ -583,7 +641,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
   openStorage: () =>
     set((state) => ({
-      objective: "Restore electricity",
+      objective: "Restaura la electricidad.",
       progression: { ...state.progression, storageOpened: true },
     })),
   readElectricalMemo: () =>
@@ -596,12 +654,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
   restoreElectricity: () =>
     set((state) => ({
-      objective: "Find the safe code",
+      objective: "Encuentra el código de la caja fuerte.",
       progression: { ...state.progression, electricityRestored: true },
     })),
   solveBookPuzzle: () =>
     set((state) => ({
-      objective: "Open the office safe",
+      objective: "Abre la caja fuerte del despacho.",
       progression: {
         ...state.progression,
         bookPuzzleSolved: true,
@@ -610,21 +668,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
   discoverSafeCode: () =>
     set((state) => ({
-      objective: "Open the office safe",
+      objective: "Abre la caja fuerte del despacho.",
       progression: { ...state.progression, safeCodeDiscovered: true },
     })),
   openSafe: () =>
     set((state) => ({
-      objective: "Unlock the basement access",
+      objective: "Desbloquea el acceso al sótano.",
       inventory: addUniqueInventoryItem(state.inventory, {
         id: "basementKey",
-        label: "Basement Key",
+        label: "Llave del sótano",
       }),
       progression: { ...state.progression, safeOpened: true },
     })),
   openBasementDoor: () =>
     set((state) => ({
-      objective: "Align the escape mechanism",
+      objective: "Alinea el mecanismo de escape.",
       progression: { ...state.progression, basementDoorOpened: true },
     })),
   alignValve: () =>
@@ -637,7 +695,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
   alignEscapeMechanism: () =>
     set((state) => ({
-      objective: "Find a way out",
+      objective: "Encuentra una salida.",
       progression: { ...state.progression, escapeMechanismAligned: true },
     })),
   startStudyEvent: () =>
@@ -651,8 +709,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   completeStudyEvent: () =>
     set((state) => ({
       objective: state.progression.electricityRestored
-        ? "Find the safe code"
-        : "Restore electricity",
+        ? "Encuentra el código de la caja fuerte."
+        : "Restaura la electricidad.",
       progression: { ...state.progression, studyEventCompleted: true },
     })),
   setStudyDoorClosed: (studyDoorClosed) =>
@@ -670,9 +728,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   enterFinalRoom: () =>
     set((state) => ({
       objective: state.progression.escapeMechanismAligned
-        ? "Find a way out"
+        ? "Encuentra una salida."
         : state.progression.basementDoorOpened
-          ? "Align the escape mechanism"
+          ? "Alinea el mecanismo de escape."
           : state.objective,
       progression: { ...state.progression, finalRoomReached: true },
     })),
@@ -680,7 +738,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => ({
       gameStatus: "victory",
       lastGameStatus: "victory",
-      objective: "You escaped the mansion",
+      objective: "Escapaste de la mansión.",
       progression: { ...state.progression, gameCompleted: true },
       player: {
         ...state.player,
