@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "C & J House",
+  title: "Mansion Game",
   description: "Un prototipo de exploración en primera persona dentro de una mansión.",
 };
 

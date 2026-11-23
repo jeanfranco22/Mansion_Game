@@ -4,11 +4,19 @@ import { useEffect, useRef } from "react";
 import {
   playGameSound,
   setAudioMix,
+  setEffectsEnabled,
   startAmbient,
   stopAllAudio,
   stopAmbient,
 } from "./gameAudio";
 import { useGameStore } from "../store/useGameStore";
+
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  Object.assign(window, {
+    audioDoor: () => playGameSound("doorOpen", 0.35),
+    audioState: () => useGameStore.getState().gameStatus,
+  });
+}
 
 export function AudioController() {
   const pointerLocked = useGameStore((state) => state.pointerLocked);
@@ -21,6 +29,18 @@ export function AudioController() {
   const sfxVolume = useGameStore((state) => state.settings.sfxVolume);
   const stepIndex = useRef(0);
   const randomSoundTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    const sync = () => 
+      setEffectsEnabled(useGameStore.getState().gameStatus === "playing")
+    sync()
+    const unsubscribe = useGameStore.subscribe(sync)
+
+    return () => {
+      unsubscribe()
+      setEffectsEnabled(false)
+    };
+  }, [])
 
   useEffect(() => {
     setAudioMix({ masterVolume, musicVolume, sfxVolume });

@@ -1,14 +1,14 @@
 import type { InventoryItem, MainRoomId, Objective } from "../store/gameStoreTypes";
 
 export const CHAPTER_INTRO_TEXT =
-  "Bienvenida, estás a punto de entrar a la casa de nuestros recuerdos de un año, repartidos en 7 días, 7 puertas que te acompañarán en tu viaje, amor.";
+  "Welcome try the game";
 
 export const STORY_NOTES = {
   note1:
-    "En esta casa nos conoceremos más, recordaremos, jugaremos y serán las cosas que tenemos tú y yo juntos, así que te iré acompañando cada día poco a poco, ¿sí amor?",
+    "First chapter, trying to learn how to play ?",
   note2:
-    'La primera pista: "Amor, deberás encontrar una llave, esta abrirá la puerta 1, no sabrás cuál es, así que deberás buscarla... mucha suerte".',
-  note3: "C & J Eternity",
+    'Open the doors',
+  note3: "Be careful",
 } as const;
 
 export type StoryNoteId = keyof typeof STORY_NOTES;

@@ -27,7 +27,7 @@ export function GameMenus() {
       <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-black p-5 text-center">
         <section className="w-full max-w-md border border-zinc-100/15 bg-zinc-950/88 p-5 shadow-2xl">
           <div className="text-xs uppercase tracking-[0.24em] text-amber-200/80">
-            C & J House
+            Mansion Game
           </div>
           <h1 className="mt-3 text-3xl font-semibold text-zinc-100">
             {loading.fatalError ? "No se pudo iniciar" : "Cargando"}
@@ -79,7 +79,7 @@ export function GameMenus() {
       <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-black/82 p-5 text-center backdrop-blur-sm">
         <section className="max-w-xl border border-zinc-100/15 bg-zinc-950/80 p-6 shadow-2xl">
           <div className="text-xs uppercase tracking-[0.24em] text-amber-200/80">
-            C & J House
+          Mansion Game
           </div>
           <h1 className="mt-3 text-4xl font-semibold text-zinc-100">
             Escapaste de la mansión
@@ -109,21 +109,21 @@ export function GameMenus() {
             Pausa
           </div>
           <h2 className="mt-2 text-3xl font-semibold text-zinc-100">
-            C & J House
+            Mansion Game
           </h2>
           <div className="mt-6 space-y-3">
             <MenuButton
               onClick={() => enterGame(resumeGame)}
               variant="primary"
             >
-              Continuar
+              Continue
             </MenuButton>
-            <MenuButton onClick={openSettings}>Ajustes</MenuButton>
+            <MenuButton onClick={openSettings}>Settings</MenuButton>
             <MenuButton
               onClick={() => enterGame(restartGame)}
               variant="danger"
             >
-              Reiniciar capítulo
+              Restart
             </MenuButton>
           </div>
         </section>
@@ -138,7 +138,7 @@ export function GameMenus() {
           Primer capítulo
         </div>
         <h1 className="mt-3 text-4xl font-semibold text-zinc-100 md:text-5xl">
-          C & J House
+          Mansion Game
         </h1>
         <p className="mt-4 max-w-lg text-base leading-7 text-zinc-300">
           {CHAPTER_INTRO_TEXT}
@@ -148,9 +148,9 @@ export function GameMenus() {
             onClick={() => enterGame(startGame)}
             variant="primary"
           >
-            Iniciar capítulo
+            Start Chapter
           </MenuButton>
-          <MenuButton onClick={openSettings}>Ajustes</MenuButton>
+          <MenuButton onClick={openSettings}>Settings</MenuButton>
         </div>
       </section>
     </div>
