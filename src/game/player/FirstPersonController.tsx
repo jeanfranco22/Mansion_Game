@@ -50,6 +50,22 @@ export function FirstPersonController() {
   }, [camera]);
 
   useEffect(() => {
+    if (typeof window === "undefined" || process.env.NODE_ENV !== "development") {
+      return;
+    }
+ 
+    Object.assign(window, {
+      controlState: () => useGameStore.getState().gameStatus,
+      pointerLockedState: () => useGameStore.getState().pointerLocked,
+      activeControls: () =>
+        Object.entries(getControls())
+          .filter(([, pressed]) => pressed)
+          .map(([name]) => name),
+      lockElement: () => Boolean(document.pointerLockElement),
+    });
+  }, [getControls]);
+
+  useEffect(() => {
     const query = window.matchMedia("(pointer: coarse)");
     const updatePointerLockAvailability = () => {
       setCanUsePointerLock(!query.matches && window.navigator.maxTouchPoints === 0);
