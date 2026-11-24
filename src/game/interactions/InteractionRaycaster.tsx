@@ -41,6 +41,47 @@ export function InteractionRaycaster() {
   );
 
   useEffect(() => {
+    if (typeof window === "undefined" || process.env.NODE_ENV !== "development") {
+      return;
+    }
+ 
+    Object.assign(window, {
+      interactionState: () => {
+        const s = useGameStore.getState();
+        interactionRaycaster.setFromCamera(screenCenter, camera);
+        interactionRaycaster.far = INTERACTION_DISTANCE;
+        const hits = interactionRaycaster.intersectObjects(scene.children, true);
+        const sceneHit = hits.find(
+          (h) => h.object.type === "Mesh" && h.object.visible,
+        );
+        const interactiveHit = hits.find((h) => findInteractableId(h.object));
+ 
+        return {
+          hoveredId: s.interaction.activeInteractionId,
+          prompt: s.interaction.activeInteractionPrompt,
+          nearestSceneHit: sceneHit
+            ? {
+                id: findInteractableId(sceneHit.object) ?? "wall",
+                dist: Number(sceneHit.distance.toFixed(2)),
+              }
+            : null,
+          nearestInteractiveHit: interactiveHit
+            ? {
+                id: findInteractableId(interactiveHit.object),
+                dist: Number(interactiveHit.distance.toFixed(2)),
+              }
+            : null,
+          studyDoorClosed: s.studyRoom.studyDoorClosed,
+          room1Open: s.mainRooms.room1.doorOpen,
+          collectedCount: s.inventory.length,
+        };
+      },
+      interactionScene: () => ({ camera, scene, store: useGameStore }),
+    });
+  }, [camera, scene]);
+
+
+  useEffect(() => {
     function handleInteract(event: KeyboardEvent) {
       if (event.code !== "KeyE") {
         return;
