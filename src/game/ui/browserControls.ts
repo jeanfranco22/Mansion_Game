@@ -15,6 +15,7 @@ export function resetActiveKeys() {
   }
   useGameStore.getState().resetMobileInput();
 }
+
 export function invalidatePointerLock() {
   ++lockEpoch;
   pendingLockEpoch = null;
@@ -32,8 +33,6 @@ export function handlePointerLockError() {
   if (useGameStore.getState().gameStatus === "playing")
     useGameStore.getState().pauseGame();
 }
-
-
 
 
 function isCoarsePointer() {
