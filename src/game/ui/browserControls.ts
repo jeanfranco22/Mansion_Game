@@ -1,6 +1,40 @@
 "use client";
 
 import { useGameStore } from "../store/useGameStore";
+import { keyboardMap } from "../player/playerControls";
+
+let lockEpoch = 0;
+let pendingLockEpoch: number | null = null;
+let pendingResumeAction: (() => void) | null = null;
+
+export function resetActiveKeys() {
+  if (typeof window !== "undefined") {
+    for (const entry of keyboardMap)
+      for (const key of entry.keys)
+        window.dispatchEvent(new KeyboardEvent("keyup", { code: key, key }));
+  }
+  useGameStore.getState().resetMobileInput();
+}
+export function invalidatePointerLock() {
+  ++lockEpoch;
+  pendingLockEpoch = null;
+  pendingResumeAction = null;
+  resetActiveKeys();
+  useGameStore.getState().setPointerLocked(false);
+  if (document.pointerLockElement) document.exitPointerLock?.();
+}
+
+export function handlePointerLockError() {
+  pendingLockEpoch = null;
+  pendingResumeAction = null;
+  resetActiveKeys();
+  useGameStore.getState().setPointerLocked(false);
+  if (useGameStore.getState().gameStatus === "playing")
+    useGameStore.getState().pauseGame();
+}
+
+
+
 
 function isCoarsePointer() {
   return (
