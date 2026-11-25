@@ -23,7 +23,7 @@ export function requestPointerLockIfDesktop() {
   try {
     void Promise.resolve(canvas.requestPointerLock()).catch(() => undefined);
   } catch {
-    // Pointer lock is optional; gameplay must continue if the browser rejects it.
+    
   }
 }
 
